@@ -25,6 +25,7 @@
     <color name="red">#FFF44336</color>
     <color name="red_100">#FFFFCDD2</color>
     <color name="red_300">#FFE57373</color>
+    <color name="red_500">#FFF44336</color>
     <color name="red_800">#FFC62828</color>
     <color name="red_900">#FFB71C1C</color>
     <color name="gray">#FF9E9E9E</color>

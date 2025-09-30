@@ -121,12 +121,6 @@ class MainActivity : AppCompatActivity() {
                     startActivity(intent)
                     true
                 }
-                R.id.nav_notifications -> {
-                    val intent = Intent(this, NotificationsActivity::class.java)
-                    intent.flags = Intent.FLAG_ACTIVITY_NO_ANIMATION
-                    startActivity(intent)
-                    true
-                }
                 R.id.nav_more -> {
                     showMoreOptionsDialog()
                     true
@@ -149,6 +143,14 @@ class MainActivity : AppCompatActivity() {
         options.add("Configuración")
         actions.add {
             val intent = Intent(this, ConfigActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NO_ANIMATION
+            startActivity(intent)
+        }
+        
+        // Agregar notificaciones
+        options.add("Notificaciones")
+        actions.add {
+            val intent = Intent(this, NotificationsActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NO_ANIMATION
             startActivity(intent)
         }
