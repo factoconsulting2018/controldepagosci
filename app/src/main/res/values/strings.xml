@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">Checklist App</string>
+    <string name="add_item">Agregar Item</string>
+    <string name="item_hint">Escribe un nuevo item...</string>
+    <string name="checklist_title">Mi Checklist</string>
+    <string name="clear_all">Limpiar Todo</string>
+    <string name="items_count">%d items</string>
+    <string name="select_category">Seleccionar categoría</string>
+    <string name="select_tipo_persona">Seleccionar tipo de persona</string>
+    <string name="excel_password_hint">Ingresa la contraseña (celeste)</string>
+    <string name="excel_password_title">Contraseña del Excel</string>
+    <string name="excel_password_message">Ingresa la contraseña para abrir el archivo Excel:</string>
+    <string name="load_excel_data">Cargar Datos desde Excel</string>
+    <string name="select_cliente">Seleccionar Cliente</string>
+    <string name="cliente_info_format" formatted="false">%s - %s</string>
+</resources>

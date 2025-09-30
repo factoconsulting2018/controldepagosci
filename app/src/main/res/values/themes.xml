@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.ChecklistApp" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your light theme here. -->
+        <item name="colorPrimary">@color/green_500</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryContainer">@color/green_100</item>
+        <item name="colorOnPrimaryContainer">@color/green_900</item>
+        <item name="colorSecondary">@color/blue_500</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="colorSecondaryContainer">@color/blue_100</item>
+        <item name="colorOnSecondaryContainer">@color/blue_900</item>
+        <item name="colorTertiary">@color/orange_500</item>
+        <item name="colorOnTertiary">@color/white</item>
+        <item name="colorTertiaryContainer">@color/orange_100</item>
+        <item name="colorOnTertiaryContainer">@color/orange_900</item>
+        <item name="colorError">@color/red</item>
+        <item name="colorOnError">@color/white</item>
+        <item name="colorErrorContainer">@color/red_100</item>
+        <item name="colorOnErrorContainer">@color/red_900</item>
+        <item name="colorSurface">@color/white</item>
+        <item name="colorOnSurface">@color/green_900</item>
+        <item name="colorSurfaceVariant">@color/green_100</item>
+        <item name="colorOnSurfaceVariant">@color/green_700</item>
+        <item name="colorOutline">@color/green_300</item>
+        <item name="colorOutlineVariant">@color/green_200</item>
+        <item name="colorSurfaceInverse">@color/green_900</item>
+        <item name="colorOnSurfaceInverse">@color/white</item>
+        <item name="colorSurfaceContainer">@color/green_50</item>
+        <item name="colorSurfaceContainerHigh">@color/green_100</item>
+        <item name="colorSurfaceContainerHighest">@color/green_200</item>
+        <item name="colorSurfaceContainerLow">@color/white</item>
+        <item name="colorSurfaceContainerLowest">@color/white</item>
+        <item name="colorSurfaceDim">@color/green_100</item>
+        <item name="colorSurfaceBright">@color/white</item>
+        
+        <!-- Navigation Bar -->
+        <item name="colorSurfaceContainer">@color/white</item>
+        <item name="colorOnSurfaceVariant">@color/green_700</item>
+        
+        <!-- Status Bar -->
+        <item name="android:statusBarColor">@color/green_500</item>
+        <item name="android:windowLightStatusBar">false</item>
+        
+        <!-- Deshabilitar animaciones para mejor rendimiento -->
+        <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:activityOpenEnterAnimation">@null</item>
+        <item name="android:activityOpenExitAnimation">@null</item>
+        <item name="android:activityCloseEnterAnimation">@null</item>
+        <item name="android:activityCloseExitAnimation">@null</item>
+        <item name="android:taskOpenEnterAnimation">@null</item>
+        <item name="android:taskOpenExitAnimation">@null</item>
+        <item name="android:taskCloseEnterAnimation">@null</item>
+        <item name="android:taskCloseExitAnimation">@null</item>
+        <item name="android:taskToFrontEnterAnimation">@null</item>
+        <item name="android:taskToFrontExitAnimation">@null</item>
+        <item name="android:taskToBackEnterAnimation">@null</item>
+        <item name="android:taskToBackExitAnimation">@null</item>
+    </style>
+
+    <style name="Theme.ChecklistApp" parent="Base.Theme.ChecklistApp" />
+</resources>

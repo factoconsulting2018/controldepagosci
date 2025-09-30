@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    android:paddingTop="50dp"
+    tools:context=".MainActivity">
+
+    <TextView
+        android:id="@+id/titleText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Gestión de Clientes"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="@color/green_700"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Barra de Progreso -->
+    <LinearLayout
+        android:id="@+id/progressBarLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="16dp"
+        android:padding="8dp"
+        android:background="@drawable/form_background"
+        app:layout_constraintTop_toBottomOf="@id/titleText"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <TextView
+            android:id="@+id/progressText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Progreso: 0/0 (0%)"
+            android:textSize="14sp"
+            android:textColor="@color/dark_green"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/generateReportButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Generar Informe"
+            android:textSize="12sp"
+            android:backgroundTint="@color/green_500"
+            android:textColor="@color/white"
+            android:padding="8dp" />
+
+    </LinearLayout>
+
+    <!-- Abecedario para filtrar clientes -->
+
+    <!-- Filtro por Ejecutivo -->
+    <HorizontalScrollView
+        android:id="@+id/ejecutivoScrollView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:scrollbars="none"
+        android:background="@drawable/form_background"
+        android:padding="8dp"
+        app:layout_constraintTop_toBottomOf="@id/progressBarLayout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:id="@+id/ejecutivoFilterLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <Button
+                android:id="@+id/btnAllEjecutivos"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:text="TODOS"
+                android:textSize="10sp"
+                android:backgroundTint="@color/green_500"
+                android:textColor="@color/white"
+                android:layout_margin="2dp"
+                android:minWidth="60dp"
+                android:padding="4dp" />
+
+        </LinearLayout>
+    </HorizontalScrollView>
+
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/questionsRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toBottomOf="@id/ejecutivoScrollView"
+        app:layout_constraintBottom_toTopOf="@id/navigationBar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Menú Flotante de Acciones - Material 3 Expressive -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabMain"
+        app:backgroundTint="?attr/colorPrimary"
+        app:tint="?attr/colorOnPrimary"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:src="@drawable/ic_add"
+        android:contentDescription="Menú Principal"
+        app:layout_constraintBottom_toTopOf="@id/navigationBar"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Botón Limpiar -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabLimpiar"
+        app:backgroundTint="?attr/colorTertiary"
+        app:tint="?attr/colorOnTertiary"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:src="@drawable/ic_clear_answers"
+        android:contentDescription="Limpiar Selección"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/fabMain"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Botón Agregar Cliente -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabAgregarCliente"
+        app:backgroundTint="?attr/colorSecondary"
+        app:tint="?attr/colorOnSecondary"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:src="@drawable/ic_add"
+        android:contentDescription="Agregar Cliente"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/fabLimpiar"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Navigation Bar Compact - Material 3 with Zoom Animations -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/navigationBar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorSurfaceContainer"
+        app:layout_constraintBottom_toTopOf="@id/footer"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:menu="@menu/navigation_menu"
+        app:labelVisibilityMode="labeled"
+        app:itemIconSize="20dp"
+        app:itemTextAppearanceActive="@style/TextAppearance.Material3.LabelSmall"
+        app:itemTextAppearanceInactive="@style/TextAppearance.Material3.LabelSmall"
+        app:itemIconTint="?attr/colorOnSurfaceVariant"
+        app:itemTextColor="?attr/colorOnSurfaceVariant"
+        app:itemRippleColor="?attr/colorPrimary" />
+
+    <!-- Footer -->
+    <LinearLayout
+        android:id="@+id/footer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="8dp"
+        android:paddingBottom="0dp"
+        android:background="@color/green_200"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <TextView
+            android:id="@+id/footerText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Desarrollada por Ing.Ronald Rojas C | 8878-1108 | Ver 1.0"
+            android:textSize="10sp"
+            android:textColor="@color/green_700"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

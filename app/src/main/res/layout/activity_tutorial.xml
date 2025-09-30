@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    tools:context=".TutorialActivity">
+
+    <!-- Overlay oscuro para resaltar elementos -->
+    <View
+        android:id="@+id/overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#80000000"
+        android:visibility="gone" />
+
+    <!-- Tutorial Card -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/tutorialCard"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="24dp"
+        android:elevation="8dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <!-- Título del Tutorial -->
+            <TextView
+                android:id="@+id/tutorialTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Tutorial de la Aplicación"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="@color/dark_green"
+                android:gravity="center"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Descripción del paso actual -->
+            <TextView
+                android:id="@+id/tutorialDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Bienvenido a la aplicación de Checklist. Te guiaremos paso a paso para que aprendas a usar todas las funcionalidades."
+                android:textSize="16sp"
+                android:textColor="@color/gray"
+                android:gravity="center"
+                android:layout_marginBottom="24dp" />
+
+            <!-- Imagen del paso actual -->
+            <ImageView
+                android:id="@+id/tutorialImage"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_question"
+                android:layout_marginBottom="24dp" />
+
+            <!-- Indicadores de progreso -->
+            <LinearLayout
+                android:id="@+id/progressIndicators"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:orientation="horizontal"
+                android:layout_marginBottom="24dp">
+
+                <View
+                    android:id="@+id/indicator1"
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/indicator_active"
+                    android:visibility="visible" />
+
+                <View
+                    android:id="@+id/indicator2"
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/indicator_inactive"
+                    android:visibility="visible" />
+
+                <View
+                    android:id="@+id/indicator3"
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/indicator_inactive"
+                    android:visibility="visible" />
+
+                <View
+                    android:id="@+id/indicator4"
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/indicator_inactive"
+                    android:visibility="visible" />
+
+                <View
+                    android:id="@+id/indicator5"
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/indicator_inactive"
+                    android:visibility="visible" />
+
+                <View
+                    android:id="@+id/indicator6"
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/indicator_inactive"
+                    android:visibility="visible" />
+
+                <View
+                    android:id="@+id/indicator7"
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/indicator_inactive"
+                    android:visibility="visible" />
+
+                <View
+                    android:id="@+id/indicator8"
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:background="@drawable/indicator_inactive"
+                    android:visibility="visible" />
+
+            </LinearLayout>
+
+            <!-- Botones de navegación -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="end">
+
+                <Button
+                    android:id="@+id/btnSkip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Omitir"
+                    android:textColor="@color/gray"
+                    android:background="@android:color/transparent"
+                    android:layout_marginEnd="16dp" />
+
+                <Button
+                    android:id="@+id/btnNext"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Siguiente"
+                    android:backgroundTint="@color/green_500"
+                    android:textColor="@color/white" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

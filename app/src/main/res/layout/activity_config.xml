@@ -1,0 +1,362 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingTop="50dp"
+    tools:context=".ConfigActivity">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/titleText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Configuración"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="@color/green_700"
+                android:layout_marginBottom="16dp" />
+
+            <!-- Selector de Orden de Clientes -->
+            <LinearLayout
+                android:id="@+id/orderSelectorLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/form_background"
+                android:padding="16dp"
+                android:layout_marginBottom="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Tipos de Estado"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/green_700"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Selecciona el estado inicial de los clientes:\n• PENDIENTE/PAGADO = Todos los clientes inician en gris (pendientes)\n• PAGADO/PENDIENTE = Todos los clientes inician en verde (pagados)"
+                    android:textSize="12sp"
+                    android:textColor="@color/dark_green"
+                    android:layout_marginBottom="12dp" />
+
+            <ToggleButton
+                android:id="@+id/orderToggleButton"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:textOff="PAGADO/PENDIENTE"
+                android:textOn="PENDIENTE/PAGADO"
+                android:textSize="14sp"
+                android:textColor="@color/white"
+                android:checked="true" />
+
+            </LinearLayout>
+
+            <!-- Formulario de Configuración -->
+            <LinearLayout
+                android:id="@+id/configForm"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/form_background"
+                android:padding="24dp"
+                android:layout_marginTop="0dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Configuración del Checklist"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/green_700"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- Título del Checklist -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Título del Checklist"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="8dp" />
+
+                <EditText
+                    android:id="@+id/titleEditText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Ej: Checklist de Seguridad Industrial"
+                    android:padding="12dp"
+                    android:background="@drawable/edittext_background"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- Configuración del Tutorial -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Tutorial Automático"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="8dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Mostrar tutorial automáticamente al inicio cuando esté en modo administrador"
+                        android:textSize="12sp"
+                        android:textColor="@color/green_700" />
+
+                    <Switch
+                        android:id="@+id/tutorialAutoSwitch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp" />
+
+                </LinearLayout>
+
+                <!-- Configuración de Eliminación de Informes -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Eliminación de Informes"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="8dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Permitir eliminación de informes cuando esté en modo administrador"
+                        android:textSize="12sp"
+                        android:textColor="@color/green_700" />
+
+                    <Switch
+                        android:id="@+id/allowDeleteReportsSwitch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp" />
+
+                </LinearLayout>
+
+                <!-- Botón Guardar -->
+                <Button
+                    android:id="@+id/saveButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Guardar Configuración"
+                    android:backgroundTint="@color/green_500"
+                    android:textColor="@color/white"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+            <!-- Sección de Backup/Restaurar -->
+            <LinearLayout
+                android:id="@+id/backupSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/form_background"
+                android:padding="24dp"
+                android:layout_marginTop="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Backup y Restaurar"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/green_700"
+                    android:layout_marginBottom="16dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Respaldar y restaurar reportes generados"
+                    android:textSize="14sp"
+                    android:textColor="@color/green_700"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- Botones de Backup y Restaurar -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:weightSum="2">
+
+                    <Button
+                        android:id="@+id/backupButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Crear Backup"
+                        android:backgroundTint="@color/green_500"
+                        android:textColor="@color/white"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:layout_marginEnd="8dp" />
+
+                    <Button
+                        android:id="@+id/restoreButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Restaurar"
+                        android:backgroundTint="@color/orange_500"
+                        android:textColor="@color/white"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:layout_marginStart="8dp" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- Sección de Importación de Clientes -->
+            <LinearLayout
+                android:id="@+id/importSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/form_background"
+                android:padding="24dp"
+                android:layout_marginTop="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Importación de Clientes"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/green_700"
+                    android:layout_marginBottom="16dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Importar clientes desde el archivo JSON"
+                    android:textSize="14sp"
+                    android:textColor="@color/green_700"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- Información del archivo -->
+                <TextView
+                    android:id="@+id/fileInfoText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Archivo: Clientes_de_Contabilidad_Totales.json"
+                    android:textSize="12sp"
+                    android:textColor="@color/green_700"
+                    android:layout_marginBottom="8dp" />
+
+                <TextView
+                    android:id="@+id/importStatusText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Estado: No importado"
+                    android:textSize="12sp"
+                    android:textColor="@color/green_700"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- Botón de Importación -->
+                <Button
+                    android:id="@+id/importClientsButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Importar Clientes"
+                    android:backgroundTint="@color/blue_500"
+                    android:textColor="@color/white"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="8dp" />
+
+                <!-- Botón de Descargar Plantilla -->
+                <Button
+                    android:id="@+id/downloadTemplateButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Descargar Plantilla Excel"
+                    android:backgroundTint="@color/green_600"
+                    android:textColor="@color/white"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="8dp" />
+
+                <!-- Botón de Verificar -->
+                <Button
+                    android:id="@+id/verifyImportButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Verificar Importación"
+                    android:backgroundTint="@color/green_500"
+                    android:textColor="@color/white"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="8dp" />
+
+                <!-- Botón de Eliminar Todos los Clientes -->
+                <Button
+                    android:id="@+id/deleteAllClientsButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Eliminar Todos los Clientes"
+                    android:backgroundTint="@color/red"
+                    android:textColor="@color/white"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </ScrollView>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/backFab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:src="@drawable/ic_back"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:backgroundTint="@color/green_500"
+        app:tint="@color/white" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

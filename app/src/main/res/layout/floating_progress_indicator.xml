@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:layout_margin="16dp">
+
+    <!-- Indicador de Progreso -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:background="@drawable/floating_progress_background"
+        android:padding="12dp"
+        android:elevation="8dp"
+        android:layout_marginEnd="8dp">
+
+        <!-- Indicador de progreso numérico -->
+        <TextView
+            android:id="@+id/progressText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0/0"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:gravity="center" />
+
+        <!-- Barra de progreso -->
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="80dp"
+            android:layout_height="4dp"
+            android:layout_marginTop="4dp"
+            android:progress="0"
+            android:max="100"
+            android:progressTint="@color/white"
+            android:progressBackgroundTint="@color/white_alpha_30" />
+
+    </LinearLayout>
+
+    <!-- Botón Generar Informe -->
+    <Button
+        android:id="@+id/generateReportButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Generar\nInforme"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:textColor="@color/white"
+        android:background="@drawable/button_orange_background"
+        android:padding="12dp"
+        android:elevation="8dp"
+        android:gravity="center"
+        android:minWidth="80dp"
+        android:minHeight="60dp" />
+
+</LinearLayout>

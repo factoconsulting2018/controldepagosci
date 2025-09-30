@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    
+    <item
+        android:id="@+id/nav_questions"
+        android:icon="@drawable/ic_question"
+        android:title="Clientes" />
+    
+    <item
+        android:id="@+id/nav_ejecutivos"
+        android:icon="@drawable/ic_category"
+        android:title="Ejecutivos" />
+    
+    <item
+        android:id="@+id/nav_reports"
+        android:icon="@drawable/ic_reports"
+        android:title="Reportes" />
+    
+    <item
+        android:id="@+id/nav_notifications"
+        android:icon="@drawable/ic_notifications"
+        android:title="Notificaciones" />
+    
+    <item
+        android:id="@+id/nav_more"
+        android:icon="@drawable/ic_menu"
+        android:title="Más" />
+        
+</menu>
