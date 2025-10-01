@@ -92,6 +92,16 @@
             android:exported="false"
             android:theme="@style/Theme.ChecklistApp" />
             
+        <activity
+            android:name=".SoporteActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ChecklistApp" />
+            
+        <activity
+            android:name=".ReporteSoporteActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ChecklistApp" />
+            
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

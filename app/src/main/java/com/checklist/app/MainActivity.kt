@@ -174,6 +174,16 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
         
+        // Agregar soporte
+        options.add("🛠️ Soporte")
+        icons.add(R.drawable.ic_support)
+        actions.add {
+            val intent = Intent(this, SoporteActivity::class.java)
+            intent.putExtra("isAdminMode", isAdminMode)
+            intent.flags = Intent.FLAG_ACTIVITY_NO_ANIMATION
+            startActivity(intent)
+        }
+        
         // Mostrar opciones de admin si está en modo admin
         if (isAdminMode) {
             options.add("🔓 Cerrar Sesión Admin")

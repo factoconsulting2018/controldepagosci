@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Crear Issue de Soporte"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/green_700"
+            android:gravity="center"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Selector de Cliente -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/clienteInputLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:hint="Cliente"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+
+            <AutoCompleteTextView
+                android:id="@+id/clienteAutoComplete"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="none"
+                android:textSize="14sp" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Información del Cliente Seleccionado -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/clienteInfoCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:visibility="gone"
+            app:cardBackgroundColor="@color/green_50"
+            app:cardElevation="2dp"
+            app:cardCornerRadius="8dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="12dp">
+
+                <TextView
+                    android:id="@+id/clienteInfoNombre"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Nombre: "
+                    android:textSize="12sp"
+                    android:textColor="@color/dark_green" />
+
+                <TextView
+                    android:id="@+id/clienteInfoCedula"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Cédula: "
+                    android:textSize="12sp"
+                    android:textColor="@color/dark_green" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Título de Issues -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Issues de Soporte"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/green_700"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Contenedor de Issues -->
+        <LinearLayout
+            android:id="@+id/issuesContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <!-- Los items de issue se agregarán dinámicamente aquí -->
+        </LinearLayout>
+
+        <!-- Botón para agregar más issues -->
+        <Button
+            android:id="@+id/btnAgregarIssue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="+ Agregar Issue"
+            android:textSize="12sp"
+            android:backgroundTint="@color/green_500"
+            android:textColor="@color/white"
+            android:layout_gravity="center"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Total de Issues -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardBackgroundColor="@color/blue_50"
+            app:cardElevation="2dp"
+            app:cardCornerRadius="8dp">
+
+            <TextView
+                android:id="@+id/totalText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="12dp"
+                android:text="Total de Issues: 0"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/blue_700"
+                android:gravity="center" />
+
+        </com.google.android.material.card.MaterialCardView>
+
+    </LinearLayout>
+
+</ScrollView>
+

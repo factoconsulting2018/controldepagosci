@@ -34,6 +34,7 @@
     <color name="gray_400">#FFBDBDBD</color>
     <color name="gray_500">#FF9E9E9E</color>
     <color name="gray_600">#FF757575</color>
+    <color name="gray_700">#FF616161</color>
     <color name="orange">#FFFF9800</color>
     <color name="orange_100">#FFFFE0B2</color>
     <color name="orange_300">#FFFFB74D</color>
