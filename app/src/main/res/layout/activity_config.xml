@@ -344,6 +344,78 @@
 
             </LinearLayout>
 
+            <!-- Sección de Logs -->
+            <LinearLayout
+                android:id="@+id/logsSection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="@drawable/form_background"
+                android:padding="24dp"
+                android:layout_marginTop="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Registro de Errores y Eventos"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/green_700"
+                    android:layout_marginBottom="16dp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Exportar registro de errores y eventos de la aplicación"
+                    android:textSize="14sp"
+                    android:textColor="@color/green_700"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- Estadísticas de logs -->
+                <TextView
+                    android:id="@+id/logsStatsText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Registros: 0 | Errores: 0 | Advertencias: 0"
+                    android:textSize="12sp"
+                    android:textColor="@color/gray_600"
+                    android:layout_marginBottom="16dp" />
+
+                <!-- Botones de Logs -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:weightSum="2">
+
+                    <Button
+                        android:id="@+id/exportLogsButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Exportar Logs"
+                        android:backgroundTint="@color/blue_500"
+                        android:textColor="@color/white"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:layout_marginEnd="8dp" />
+
+                    <Button
+                        android:id="@+id/clearLogsButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Limpiar Logs"
+                        android:backgroundTint="@color/orange_500"
+                        android:textColor="@color/white"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:layout_marginStart="8dp" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
         </LinearLayout>
 
     </ScrollView>

@@ -1,183 +1,421 @@
 package com.checklist.app
 
+import android.app.AlertDialog
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
+import android.view.LayoutInflater
 import android.view.View
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.checklist.app.databinding.ActivityNotificationsBinding
+import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.card.MaterialCardView
+import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.textfield.TextInputEditText
+import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.*
 
-data class NotificationItem(
-    val id: Long,
-    val title: String,
-    val message: String,
-    val timestamp: Long,
-    val isRead: Boolean = false,
-    val type: NotificationType = NotificationType.INFO
-)
-
-enum class NotificationType {
-    INFO, WARNING, SUCCESS, ERROR
-}
-
 class NotificationsActivity : AppCompatActivity() {
     
-    private lateinit var binding: ActivityNotificationsBinding
-    private lateinit var notificationsAdapter: NotificationsAdapter
-    private val notifications = mutableListOf<NotificationItem>()
+    private lateinit var notificacionManager: NotificacionManager
+    private lateinit var clienteManager: ClienteManager
+    private lateinit var notificacionesRecyclerView: RecyclerView
+    private lateinit var notificacionesAdapter: NotificacionesAdapter
+    private lateinit var fabCrearNotificacion: FloatingActionButton
+    private var isAdminMode = false
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
-        // Ocultar la ActionBar
         supportActionBar?.hide()
+        setContentView(R.layout.activity_notifications)
         
-        binding = ActivityNotificationsBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        isAdminMode = intent.getBooleanExtra("isAdminMode", false)
         
+        notificacionManager = NotificacionManager(this)
+        clienteManager = ClienteManager(this)
+        
+        setupViews()
         setupRecyclerView()
-        setupClickListeners()
-        loadNotifications()
+        loadNotificaciones()
+    }
+    
+    private fun setupViews() {
+        notificacionesRecyclerView = findViewById(R.id.notificacionesRecyclerView)
+        fabCrearNotificacion = findViewById(R.id.fabCrearNotificacion)
+        
+        fabCrearNotificacion.setOnClickListener {
+            showCrearNotificacionDialog()
+        }
+        
+        try {
+            val packageInfo = packageManager.getPackageInfo(packageName, 0)
+            val versionName = packageInfo.versionName
+            findViewById<TextView>(R.id.footerText).text = "Desarrollada por Ing.Ronald Rojas C | 8878-1108 | Ver: $versionName"
+        } catch (e: Exception) {
+            findViewById<TextView>(R.id.footerText).text = "Desarrollada por Ing.Ronald Rojas C | 8878-1108 | Ver: 1.0"
+        }
     }
     
     private fun setupRecyclerView() {
-        notificationsAdapter = NotificationsAdapter(
-            onNotificationClick = { notification ->
-                markAsRead(notification)
-            },
-            onDeleteClick = { notification ->
-                deleteNotification(notification)
-            }
+        notificacionesAdapter = NotificacionesAdapter(
+            onEnviarClick = { notificacion -> enviarPorWhatsApp(notificacion) },
+            onVerMasClick = { notificacion -> mostrarDetalleNotificacion(notificacion) },
+            onCompartirClick = { notificacion -> compartirMensaje(notificacion) },
+            onEditarClick = { notificacion -> editarNotificacion(notificacion) },
+            onDeleteClick = { notificacion -> eliminarNotificacion(notificacion) },
+            isAdminMode = { isAdminMode }
         )
-        
-        binding.recyclerViewNotifications.apply {
+        notificacionesRecyclerView.apply {
             layoutManager = LinearLayoutManager(this@NotificationsActivity)
-            adapter = notificationsAdapter
+            adapter = notificacionesAdapter
         }
     }
     
-    private fun setupClickListeners() {
-        binding.backFab.setOnClickListener {
-            finish()
-        }
-        
-        binding.clearAllButton.setOnClickListener {
-            clearAllNotifications()
-        }
-        
-        binding.markAllReadButton.setOnClickListener {
-            markAllAsRead()
-        }
+    private fun loadNotificaciones() {
+        val notificaciones = notificacionManager.getAllNotificaciones().sortedByDescending { it.fechaCreacion }
+        notificacionesAdapter.submitList(notificaciones)
     }
     
-    private fun loadNotifications() {
-        // Cargar notificaciones de ejemplo
-        val sampleNotifications = listOf(
-            NotificationItem(
-                id = 1,
-                title = "Bienvenido a la App",
-                message = "Has completado el tutorial exitosamente. ¡Comienza a usar la aplicación!",
-                timestamp = System.currentTimeMillis() - 3600000, // 1 hora atrás
-                type = NotificationType.SUCCESS
-            ),
-            NotificationItem(
-                id = 2,
-                title = "Nuevo Cliente Agregado",
-                message = "Se ha agregado un nuevo cliente: Juan Pérez",
-                timestamp = System.currentTimeMillis() - 7200000, // 2 horas atrás
-                type = NotificationType.INFO
-            ),
-            NotificationItem(
-                id = 3,
-                title = "Reporte Generado",
-                message = "El reporte de clientes se ha generado correctamente",
-                timestamp = System.currentTimeMillis() - 10800000, // 3 horas atrás
-                type = NotificationType.SUCCESS
-            ),
-            NotificationItem(
-                id = 4,
-                title = "Configuración Actualizada",
-                message = "Los estados de clientes se han actualizado a PAGADO/PENDIENTE",
-                timestamp = System.currentTimeMillis() - 14400000, // 4 horas atrás
-                type = NotificationType.INFO
-            ),
-            NotificationItem(
-                id = 5,
-                title = "Sincronización Completada",
-                message = "Los datos se han sincronizado correctamente con el servidor",
-                timestamp = System.currentTimeMillis() - 18000000, // 5 horas atrás
-                type = NotificationType.SUCCESS
-            )
+    private fun showCrearNotificacionDialog() {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_crear_notificacion, null)
+        
+        val clienteAutoComplete = dialogView.findViewById<AutoCompleteTextView>(R.id.clienteAutoComplete)
+        val clienteInfoCard = dialogView.findViewById<MaterialCardView>(R.id.clienteInfoCard)
+        val clienteInfoNombre = dialogView.findViewById<TextView>(R.id.clienteInfoNombre)
+        val clienteInfoCedula = dialogView.findViewById<TextView>(R.id.clienteInfoCedula)
+        val clienteInfoTelefono = dialogView.findViewById<TextView>(R.id.clienteInfoTelefono)
+        val clienteInfoEjecutivo = dialogView.findViewById<TextView>(R.id.clienteInfoEjecutivo)
+        val montoPendienteEditText = dialogView.findViewById<TextInputEditText>(R.id.montoPendienteEditText)
+        val mensajeEditText = dialogView.findViewById<TextInputEditText>(R.id.mensajeEditText)
+        val caracteresCounter = dialogView.findViewById<TextView>(R.id.caracteresCounter)
+        val mensajePreview = dialogView.findViewById<TextView>(R.id.mensajePreview)
+        
+        var clienteSeleccionado: Cliente? = null
+        
+        val clientes = clienteManager.getAllClientes()
+        val clientesNombres = clientes.map { "${it.nombre} - ${it.cedula}" }
+        val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, clientesNombres)
+        clienteAutoComplete.setAdapter(adapter)
+        
+        clienteAutoComplete.setOnItemClickListener { _, _, position, _ ->
+            clienteSeleccionado = clientes[position]
+            clienteInfoCard.visibility = View.VISIBLE
+            clienteInfoNombre.text = "Nombre: ${clienteSeleccionado?.nombre}"
+            clienteInfoCedula.text = "Cédula: ${clienteSeleccionado?.cedula}"
+            clienteInfoTelefono.text = "Teléfono: ${clienteSeleccionado?.telefono}"
+            clienteInfoEjecutivo.text = "Ejecutivo: ${clienteSeleccionado?.ejecutivo}"
+            updateMensajePreview(mensajeEditText.text.toString(), clienteSeleccionado, montoPendienteEditText.text.toString(), mensajePreview)
+        }
+        
+        mensajeEditText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                caracteresCounter.text = "${s?.length ?: 0}/500 caracteres"
+                updateMensajePreview(s.toString(), clienteSeleccionado, montoPendienteEditText.text.toString(), mensajePreview)
+            }
+            override fun afterTextChanged(s: Editable?) {}
+        })
+        
+        montoPendienteEditText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                updateMensajePreview(mensajeEditText.text.toString(), clienteSeleccionado, s.toString(), mensajePreview)
+            }
+            override fun afterTextChanged(s: Editable?) {}
+        })
+        
+        mensajeEditText.setText("Estimado(a) {nombre}, le recordamos que tiene un saldo pendiente de {monto} colones. Por favor, comuníquese con su ejecutivo {ejecutivo} para más información.\n\nTeléfono: 4070-0485 / 8613-0001")
+        
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .setPositiveButton("Crear Notificación") { _, _ ->
+                crearNotificacion(clienteSeleccionado, montoPendienteEditText.text.toString(), mensajeEditText.text.toString())
+            }
+            .setNegativeButton("Cancelar", null)
+            .create()
+        
+        dialog.show()
+    }
+    
+    private fun crearNotificacion(cliente: Cliente?, montoStr: String, mensaje: String) {
+        val monto = montoStr.toDoubleOrNull() ?: 0.0
+        
+        if (cliente == null) {
+            Toast.makeText(this, "Debe seleccionar un cliente", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        if (monto <= 0) {
+            Toast.makeText(this, "Debe ingresar un monto válido", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        if (mensaje.isEmpty()) {
+            Toast.makeText(this, "Debe ingresar un mensaje", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        val mensajeFinal = replacePlaceholders(mensaje, cliente, monto)
+        
+        val notificacion = Notificacion(
+            clienteId = cliente.id,
+            clienteNombre = cliente.nombre,
+            clienteTelefono = cliente.telefono,
+            montoPendiente = monto,
+            mensaje = mensajeFinal
         )
         
-        notifications.clear()
-        notifications.addAll(sampleNotifications)
-        notificationsAdapter.submitList(notifications.toList())
-        
-        updateNotificationCount()
+        notificacionManager.addNotificacion(notificacion)
+        Toast.makeText(this, "Notificación creada exitosamente", Toast.LENGTH_SHORT).show()
+        loadNotificaciones()
     }
     
-    private fun markAsRead(notification: NotificationItem) {
-        val index = notifications.indexOfFirst { it.id == notification.id }
-        if (index != -1) {
-            notifications[index] = notification.copy(isRead = true)
-            notificationsAdapter.submitList(notifications.toList())
-            updateNotificationCount()
-            Toast.makeText(this, "Notificación marcada como leída", Toast.LENGTH_SHORT).show()
+    private fun updateMensajePreview(mensaje: String, cliente: Cliente?, monto: String, previewTextView: TextView) {
+        if (cliente == null) {
+            previewTextView.text = "Seleccione un cliente para ver la vista previa..."
+            return
         }
+        
+        val montoDouble = monto.toDoubleOrNull() ?: 0.0
+        val mensajePreview = replacePlaceholders(mensaje, cliente, montoDouble)
+        previewTextView.text = mensajePreview
     }
     
-    private fun deleteNotification(notification: NotificationItem) {
-        notifications.removeAll { it.id == notification.id }
-        notificationsAdapter.submitList(notifications.toList())
-        updateNotificationCount()
-        Toast.makeText(this, "Notificación eliminada", Toast.LENGTH_SHORT).show()
+    private fun replacePlaceholders(mensaje: String, cliente: Cliente, monto: Double): String {
+        val numberFormat = NumberFormat.getCurrencyInstance(Locale("es", "CR"))
+        val montoFormateado = numberFormat.format(monto)
+        
+        return mensaje
+            .replace("{nombre}", cliente.nombre)
+            .replace("{cedula}", cliente.cedula)
+            .replace("{monto}", montoFormateado)
+            .replace("{ejecutivo}", cliente.ejecutivo)
+            .replace("{telefono}", cliente.telefono)
+            .replace("{tipo}", cliente.tipoPersona)
     }
     
-    private fun markAllAsRead() {
-        notifications.forEachIndexed { index, notification ->
-            if (!notification.isRead) {
-                notifications[index] = notification.copy(isRead = true)
+    private fun enviarPorWhatsApp(notificacion: Notificacion) {
+        try {
+            var telefono = notificacion.clienteTelefono.replace(Regex("[^0-9]"), "")
+            
+            if (!telefono.startsWith("506")) {
+                telefono = "506$telefono"
             }
+            
+            val intent = Intent(Intent.ACTION_VIEW)
+            val url = "https://api.whatsapp.com/send?phone=$telefono&text=${Uri.encode(notificacion.mensaje)}"
+            intent.data = Uri.parse(url)
+            
+            if (intent.resolveActivity(packageManager) != null) {
+                startActivity(intent)
+                notificacionManager.markAsEnviada(notificacion.id)
+                loadNotificaciones()
+                Toast.makeText(this, "Abriendo WhatsApp...", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this, "WhatsApp no está instalado", Toast.LENGTH_LONG).show()
+            }
+        } catch (e: Exception) {
+            Toast.makeText(this, "Error al abrir WhatsApp: ${e.message}", Toast.LENGTH_LONG).show()
         }
-        notificationsAdapter.submitList(notifications.toList())
-        updateNotificationCount()
-        Toast.makeText(this, "Todas las notificaciones marcadas como leídas", Toast.LENGTH_SHORT).show()
     }
     
-    private fun clearAllNotifications() {
-        notifications.clear()
-        notificationsAdapter.submitList(emptyList())
-        updateNotificationCount()
-        Toast.makeText(this, "Todas las notificaciones eliminadas", Toast.LENGTH_SHORT).show()
-    }
-    
-    private fun updateNotificationCount() {
-        val unreadCount = notifications.count { !it.isRead }
-        binding.notificationCountText.text = "Notificaciones ($unreadCount sin leer)"
+    private fun mostrarDetalleNotificacion(notificacion: Notificacion) {
+        val sdf = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+        val fecha = sdf.format(Date(notificacion.fechaCreacion))
         
-        if (notifications.isEmpty()) {
-            binding.emptyStateLayout.visibility = View.VISIBLE
-            binding.recyclerViewNotifications.visibility = View.GONE
-        } else {
-            binding.emptyStateLayout.visibility = View.GONE
-            binding.recyclerViewNotifications.visibility = View.VISIBLE
+        val numberFormat = NumberFormat.getCurrencyInstance(Locale("es", "CR"))
+        val montoFormateado = numberFormat.format(notificacion.montoPendiente)
+        
+        val mensaje = """
+            Cliente: ${notificacion.clienteNombre}
+            Teléfono: ${notificacion.clienteTelefono}
+            Monto Pendiente: $montoFormateado
+            Fecha de Creación: $fecha
+            Estado: ${if (notificacion.enviada) "Enviada" else "Pendiente"}
+            
+            Mensaje:
+            ${notificacion.mensaje}
+        """.trimIndent()
+        
+        AlertDialog.Builder(this)
+            .setTitle("Detalle de Notificación")
+            .setMessage(mensaje)
+            .setPositiveButton("Cerrar", null)
+            .setNeutralButton("Enviar por WhatsApp") { _, _ ->
+                enviarPorWhatsApp(notificacion)
+            }
+            .setNegativeButton("Eliminar") { _, _ ->
+                eliminarNotificacion(notificacion)
+            }
+            .show()
+    }
+    
+    private fun compartirMensaje(notificacion: Notificacion) {
+        try {
+            val intent = Intent(Intent.ACTION_SEND)
+            intent.type = "text/plain"
+            intent.putExtra(Intent.EXTRA_SUBJECT, "Notificación de Deuda - ${notificacion.clienteNombre}")
+            intent.putExtra(Intent.EXTRA_TEXT, notificacion.mensaje)
+            
+            startActivity(Intent.createChooser(intent, "Compartir notificación mediante..."))
+        } catch (e: Exception) {
+            Toast.makeText(this, "Error al compartir: ${e.message}", Toast.LENGTH_LONG).show()
         }
     }
     
-    companion object {
-        fun addNotification(
-            context: android.content.Context,
-            title: String,
-            message: String,
-            type: NotificationType = NotificationType.INFO
-        ) {
-            // Aquí se podría implementar la lógica para agregar notificaciones
-            // desde otras partes de la aplicación
-            android.util.Log.d("NotificationsActivity", "Nueva notificación: $title - $message")
+    private fun editarNotificacion(notificacion: Notificacion) {
+        if (!isAdminMode) {
+            Toast.makeText(this, "Modo administrador requerido para editar", Toast.LENGTH_SHORT).show()
+            return
         }
+        
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_crear_notificacion, null)
+        
+        val clienteAutoComplete = dialogView.findViewById<AutoCompleteTextView>(R.id.clienteAutoComplete)
+        val clienteInfoCard = dialogView.findViewById<MaterialCardView>(R.id.clienteInfoCard)
+        val clienteInfoNombre = dialogView.findViewById<TextView>(R.id.clienteInfoNombre)
+        val clienteInfoCedula = dialogView.findViewById<TextView>(R.id.clienteInfoCedula)
+        val clienteInfoTelefono = dialogView.findViewById<TextView>(R.id.clienteInfoTelefono)
+        val clienteInfoEjecutivo = dialogView.findViewById<TextView>(R.id.clienteInfoEjecutivo)
+        val montoPendienteEditText = dialogView.findViewById<TextInputEditText>(R.id.montoPendienteEditText)
+        val mensajeEditText = dialogView.findViewById<TextInputEditText>(R.id.mensajeEditText)
+        val caracteresCounter = dialogView.findViewById<TextView>(R.id.caracteresCounter)
+        val mensajePreview = dialogView.findViewById<TextView>(R.id.mensajePreview)
+        
+        val cliente = clienteManager.getClienteById(notificacion.clienteId)
+        
+        val clientes = clienteManager.getAllClientes()
+        val clientesNombres = clientes.map { "${it.nombre} - ${it.cedula}" }
+        val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, clientesNombres)
+        clienteAutoComplete.setAdapter(adapter)
+        
+        // Preseleccionar el cliente actual
+        val clienteIndex = clientes.indexOfFirst { it.id == notificacion.clienteId }
+        if (clienteIndex >= 0 && cliente != null) {
+            clienteAutoComplete.setText("${cliente.nombre} - ${cliente.cedula}", false)
+            clienteInfoCard.visibility = View.VISIBLE
+            clienteInfoNombre.text = "Nombre: ${cliente.nombre}"
+            clienteInfoCedula.text = "Cédula: ${cliente.cedula}"
+            clienteInfoTelefono.text = "Teléfono: ${cliente.telefono}"
+            clienteInfoEjecutivo.text = "Ejecutivo: ${cliente.ejecutivo}"
+        }
+        
+        montoPendienteEditText.setText(notificacion.montoPendiente.toString())
+        
+        // Obtener mensaje original con etiquetas
+        val mensajeOriginal = obtenerMensajeConEtiquetas(notificacion, cliente)
+        mensajeEditText.setText(mensajeOriginal)
+        
+        var clienteSeleccionado: Cliente? = cliente
+        
+        clienteAutoComplete.setOnItemClickListener { _, _, position, _ ->
+            clienteSeleccionado = clientes[position]
+            clienteInfoCard.visibility = View.VISIBLE
+            clienteInfoNombre.text = "Nombre: ${clienteSeleccionado?.nombre}"
+            clienteInfoCedula.text = "Cédula: ${clienteSeleccionado?.cedula}"
+            clienteInfoTelefono.text = "Teléfono: ${clienteSeleccionado?.telefono}"
+            clienteInfoEjecutivo.text = "Ejecutivo: ${clienteSeleccionado?.ejecutivo}"
+            updateMensajePreview(mensajeEditText.text.toString(), clienteSeleccionado, montoPendienteEditText.text.toString(), mensajePreview)
+        }
+        
+        mensajeEditText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                caracteresCounter.text = "${s?.length ?: 0}/500 caracteres"
+                updateMensajePreview(s.toString(), clienteSeleccionado, montoPendienteEditText.text.toString(), mensajePreview)
+            }
+            override fun afterTextChanged(s: Editable?) {}
+        })
+        
+        montoPendienteEditText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                updateMensajePreview(mensajeEditText.text.toString(), clienteSeleccionado, s.toString(), mensajePreview)
+            }
+            override fun afterTextChanged(s: Editable?) {}
+        })
+        
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Editar Notificación")
+            .setView(dialogView)
+            .setPositiveButton("Guardar Cambios") { _, _ ->
+                actualizarNotificacion(notificacion, clienteSeleccionado, montoPendienteEditText.text.toString(), mensajeEditText.text.toString())
+            }
+            .setNegativeButton("Cancelar", null)
+            .create()
+        
+        dialog.show()
+    }
+    
+    private fun obtenerMensajeConEtiquetas(notificacion: Notificacion, cliente: Cliente?): String {
+        if (cliente == null) return notificacion.mensaje
+        
+        val numberFormat = NumberFormat.getCurrencyInstance(Locale("es", "CR"))
+        val montoFormateado = numberFormat.format(notificacion.montoPendiente)
+        
+        return notificacion.mensaje
+            .replace(cliente.nombre, "{nombre}")
+            .replace(cliente.cedula, "{cedula}")
+            .replace(montoFormateado, "{monto}")
+            .replace(cliente.ejecutivo, "{ejecutivo}")
+            .replace(cliente.telefono, "{telefono}")
+            .replace(cliente.tipoPersona, "{tipo}")
+    }
+    
+    private fun actualizarNotificacion(notificacionOriginal: Notificacion, cliente: Cliente?, montoStr: String, mensaje: String) {
+        val monto = montoStr.toDoubleOrNull() ?: 0.0
+        
+        if (cliente == null) {
+            Toast.makeText(this, "Debe seleccionar un cliente", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        if (monto <= 0) {
+            Toast.makeText(this, "Debe ingresar un monto válido", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        if (mensaje.isEmpty()) {
+            Toast.makeText(this, "Debe ingresar un mensaje", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        val mensajeFinal = replacePlaceholders(mensaje, cliente, monto)
+        
+        val notificacionActualizada = notificacionOriginal.copy(
+            clienteId = cliente.id,
+            clienteNombre = cliente.nombre,
+            clienteTelefono = cliente.telefono,
+            montoPendiente = monto,
+            mensaje = mensajeFinal,
+            enviada = false // Reset estado al editar
+        )
+        
+        notificacionManager.updateNotificacion(notificacionActualizada)
+        Toast.makeText(this, "Notificación actualizada exitosamente", Toast.LENGTH_SHORT).show()
+        loadNotificaciones()
+    }
+    
+    private fun eliminarNotificacion(notificacion: Notificacion) {
+        if (!isAdminMode) {
+            Toast.makeText(this, "Modo administrador requerido para eliminar", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        AlertDialog.Builder(this)
+            .setTitle("Eliminar Notificación")
+            .setMessage("¿Está seguro de que desea eliminar esta notificación?")
+            .setPositiveButton("Eliminar") { _, _ ->
+                notificacionManager.deleteNotificacion(notificacion)
+                Toast.makeText(this, "Notificación eliminada", Toast.LENGTH_SHORT).show()
+                loadNotificaciones()
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
     }
 }
+

@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardElevation="4dp"
+    app:cardCornerRadius="12dp"
+    app:cardBackgroundColor="@color/white">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Header con nombre del cliente y estado -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:id="@+id/clienteNombreText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Nombre Cliente"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/green_700" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/estadoChip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Pendiente"
+                android:textSize="10sp"
+                app:chipBackgroundColor="@color/orange_300"
+                app:chipStrokeWidth="0dp" />
+
+        </LinearLayout>
+
+        <!-- Información del cliente -->
+        <TextView
+            android:id="@+id/clienteInfoText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Cédula: 123456789"
+            android:textSize="12sp"
+            android:textColor="@color/gray_600"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:id="@+id/telefonoText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Teléfono: 88881234"
+            android:textSize="12sp"
+            android:textColor="@color/gray_600"
+            android:layout_marginBottom="4dp" />
+
+        <!-- Monto pendiente -->
+        <TextView
+            android:id="@+id/montoPendienteText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Monto: ₡50,000.00"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="@color/red_500"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Mensaje -->
+        <TextView
+            android:id="@+id/mensajeText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Mensaje de notificación..."
+            android:textSize="13sp"
+            android:textColor="@color/black"
+            android:maxLines="3"
+            android:ellipsize="end"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Fecha -->
+        <TextView
+            android:id="@+id/fechaText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Creada: 01/10/2025"
+            android:textSize="11sp"
+            android:textColor="@color/gray_500"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Botones de acción -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="end">
+
+            <Button
+                android:id="@+id/btnVerMas"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="Ver Más"
+                android:textSize="11sp"
+                android:backgroundTint="@color/gray_400"
+                android:textColor="@color/white"
+                android:layout_marginEnd="4dp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+
+            <Button
+                android:id="@+id/btnCompartir"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="Compartir"
+                android:textSize="11sp"
+                android:backgroundTint="@color/blue_500"
+                android:textColor="@color/white"
+                android:drawableStart="@android:drawable/ic_menu_share"
+                android:drawablePadding="4dp"
+                android:layout_marginEnd="4dp" />
+
+            <Button
+                android:id="@+id/btnEnviarWhatsApp"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="WhatsApp"
+                android:textSize="11sp"
+                android:backgroundTint="@color/green_500"
+                android:textColor="@color/white"
+                android:drawableStart="@android:drawable/ic_menu_send"
+                android:drawablePadding="4dp" />
+
+        </LinearLayout>
+        
+        <!-- Botones de administración (solo visibles en modo admin) -->
+        <LinearLayout
+            android:id="@+id/adminButtonsLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="end"
+            android:layout_marginTop="8dp"
+            android:visibility="gone">
+
+            <Button
+                android:id="@+id/btnEditarNotificacion"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="Editar"
+                android:textSize="11sp"
+                android:backgroundTint="@color/orange_500"
+                android:textColor="@color/white"
+                android:layout_marginEnd="4dp" />
+
+            <Button
+                android:id="@+id/btnEliminarNotificacion"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="Eliminar"
+                android:textSize="11sp"
+                android:backgroundTint="@color/red_500"
+                android:textColor="@color/white" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>
+

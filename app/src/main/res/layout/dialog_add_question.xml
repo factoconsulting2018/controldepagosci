@@ -121,13 +121,10 @@
             android:textStyle="bold"
             android:layout_marginBottom="8dp" />
 
-        <EditText
-            android:id="@+id/ciFcEditText"
+        <Spinner
+            android:id="@+id/ciFcSpinner"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Ingresa CI-FC"
-            android:padding="12dp"
-            android:background="@drawable/edittext_background"
             android:layout_marginBottom="16dp" />
 
         <TextView
@@ -138,13 +135,10 @@
             android:textStyle="bold"
             android:layout_marginBottom="8dp" />
 
-        <EditText
-            android:id="@+id/ejecutivoEditText"
+        <Spinner
+            android:id="@+id/ejecutivoSpinner"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Ingresa el nombre del ejecutivo"
-            android:padding="12dp"
-            android:background="@drawable/edittext_background"
             android:layout_marginBottom="16dp" />
 
         <TextView
@@ -155,13 +149,10 @@
             android:textStyle="bold"
             android:layout_marginBottom="8dp" />
 
-        <EditText
-            android:id="@+id/tipoRegimenEditText"
+        <Spinner
+            android:id="@+id/tipoRegimenSpinner"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Ingresa el tipo de régimen"
-            android:padding="12dp"
-            android:background="@drawable/edittext_background"
             android:layout_marginBottom="16dp" />
 
         <!-- Checkboxes -->

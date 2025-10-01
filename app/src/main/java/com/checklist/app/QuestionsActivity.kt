@@ -469,9 +469,9 @@ class QuestionsActivity : AppCompatActivity() {
         val tipoPersonaSpinner = dialogView.findViewById<Spinner>(R.id.tipoPersonaSpinner)
         val representanteEditText = dialogView.findViewById<EditText>(R.id.representanteEditText)
         val telefonoEditText = dialogView.findViewById<EditText>(R.id.telefonoEditText)
-        val ciFcEditText = dialogView.findViewById<EditText>(R.id.ciFcEditText)
-        val ejecutivoEditText = dialogView.findViewById<EditText>(R.id.ejecutivoEditText)
-        val tipoRegimenEditText = dialogView.findViewById<EditText>(R.id.tipoRegimenEditText)
+        val ciFcSpinner = dialogView.findViewById<Spinner>(R.id.ciFcSpinner)
+        val ejecutivoSpinner = dialogView.findViewById<Spinner>(R.id.ejecutivoSpinner)
+        val tipoRegimenSpinner = dialogView.findViewById<Spinner>(R.id.tipoRegimenSpinner)
         val patentadoCheckBox = dialogView.findViewById<CheckBox>(R.id.patentadoCheckBox)
         val pendientePagoCheckBox = dialogView.findViewById<CheckBox>(R.id.pendientePagoCheckBox)
         val selectClienteButton = dialogView.findViewById<android.widget.Button>(R.id.selectClienteButton)
@@ -482,12 +482,31 @@ class QuestionsActivity : AppCompatActivity() {
         tipoPersonaAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         tipoPersonaSpinner.adapter = tipoPersonaAdapter
         
+        // Configurar spinner de CI-FC
+        val tiposCiFc = arrayOf("Sin especificar", "CI", "FC")
+        val ciFcAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, tiposCiFc)
+        ciFcAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        ciFcSpinner.adapter = ciFcAdapter
+        
+        // Configurar spinner de ejecutivos (usando la variable ejecutivos ya declarada al inicio de la función)
+        val ejecutivosNombres = ejecutivos.map { it.name }.toMutableList()
+        ejecutivosNombres.add(0, "Sin ejecutivo")
+        val ejecutivoAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, ejecutivosNombres)
+        ejecutivoAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        ejecutivoSpinner.adapter = ejecutivoAdapter
+        
+        // Configurar spinner de tipo de régimen
+        val tiposRegimen = arrayOf("Sin régimen", "Simplificado", "Tradicional")
+        val tipoRegimenAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, tiposRegimen)
+        tipoRegimenAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        tipoRegimenSpinner.adapter = tipoRegimenAdapter
+        
         // Configurar botón de selección de cliente
         selectClienteButton.setOnClickListener {
             showClienteSelectionDialog(
                 nombreClienteEditText, cedulaEditText, tipoPersonaSpinner,
-                representanteEditText, telefonoEditText, ciFcEditText,
-                ejecutivoEditText, tipoRegimenEditText, patentadoCheckBox, pendientePagoCheckBox
+                representanteEditText, telefonoEditText, ciFcSpinner,
+                ejecutivoSpinner, tipoRegimenSpinner, patentadoCheckBox, pendientePagoCheckBox
             )
         }
         
@@ -501,16 +520,19 @@ class QuestionsActivity : AppCompatActivity() {
                 val tipoPersona = tipoPersonaOptions[tipoPersonaSpinner.selectedItemPosition]
                 val representante = representanteEditText.text.toString().trim()
                 val telefono = telefonoEditText.text.toString().trim()
-                val ciFc = ciFcEditText.text.toString().trim()
-                val ejecutivo = ejecutivoEditText.text.toString().trim()
-                val tipoRegimen = tipoRegimenEditText.text.toString().trim()
+                val ciFcSeleccionado = ciFcSpinner.selectedItem.toString()
+                val ciFc = if (ciFcSeleccionado == "Sin especificar") "" else ciFcSeleccionado
+                val ejecutivoSeleccionado = ejecutivoSpinner.selectedItem.toString()
+                val ejecutivo = if (ejecutivoSeleccionado == "Sin ejecutivo") "" else ejecutivoSeleccionado
+                val tipoRegimenSeleccionado = tipoRegimenSpinner.selectedItem.toString()
+                val tipoRegimen = if (tipoRegimenSeleccionado == "Sin régimen") "" else tipoRegimenSeleccionado
                 val patentado = patentadoCheckBox.isChecked
                 val pendientePago = pendientePagoCheckBox.isChecked
                 
                 if (nombreCliente.isNotEmpty() && cedula.isNotEmpty()) {
-                    val ejecutivos = ejecutivoManager.getAllEjecutivos()
+                    val ejecutivosList = ejecutivoManager.getAllEjecutivos()
                     addQuestionWithCliente(
-                        nombreCliente, cedula, ejecutivos.first().id, 0, // Usar primer ejecutivo y posición 0
+                        nombreCliente, cedula, ejecutivosList.first().id, 0, // Usar primer ejecutivo y posición 0
                         nombreCliente, cedula, tipoPersona, representante, telefono,
                         ciFc, ejecutivo, tipoRegimen, patentado, pendientePago
                     )
@@ -572,8 +594,8 @@ class QuestionsActivity : AppCompatActivity() {
     
     private fun showClienteSelectionDialog(
         nombreClienteEditText: EditText, cedulaEditText: EditText, tipoPersonaSpinner: Spinner,
-        representanteEditText: EditText, telefonoEditText: EditText, ciFcEditText: EditText,
-        ejecutivoEditText: EditText, tipoRegimenEditText: EditText, patentadoCheckBox: CheckBox, 
+        representanteEditText: EditText, telefonoEditText: EditText, ciFcSpinner: Spinner,
+        ejecutivoSpinner: Spinner, tipoRegimenSpinner: Spinner, patentadoCheckBox: CheckBox, 
         pendientePagoCheckBox: CheckBox
     ) {
         val clientes = clienteManager.getAllClientes()
@@ -589,8 +611,8 @@ class QuestionsActivity : AppCompatActivity() {
             .setItems(clienteNames.toTypedArray()) { _, which ->
                 val selectedCliente = clientes[which]
                 fillClienteFields(selectedCliente, nombreClienteEditText, cedulaEditText, tipoPersonaSpinner,
-                    representanteEditText, telefonoEditText, ciFcEditText,
-                    ejecutivoEditText, tipoRegimenEditText, patentadoCheckBox, pendientePagoCheckBox)
+                    representanteEditText, telefonoEditText, ciFcSpinner,
+                    ejecutivoSpinner, tipoRegimenSpinner, patentadoCheckBox, pendientePagoCheckBox)
             }
             .setNegativeButton("Cancelar", null)
             .show()
@@ -599,8 +621,8 @@ class QuestionsActivity : AppCompatActivity() {
     private fun fillClienteFields(
         cliente: Cliente,
         nombreClienteEditText: EditText, cedulaEditText: EditText, tipoPersonaSpinner: Spinner,
-        representanteEditText: EditText, telefonoEditText: EditText, ciFcEditText: EditText,
-        ejecutivoEditText: EditText, tipoRegimenEditText: EditText, patentadoCheckBox: CheckBox, 
+        representanteEditText: EditText, telefonoEditText: EditText, ciFcSpinner: Spinner,
+        ejecutivoSpinner: Spinner, tipoRegimenSpinner: Spinner, patentadoCheckBox: CheckBox, 
         pendientePagoCheckBox: CheckBox
     ) {
         nombreClienteEditText.setText(cliente.nombre)
@@ -615,9 +637,35 @@ class QuestionsActivity : AppCompatActivity() {
         
         representanteEditText.setText(cliente.representante)
         telefonoEditText.setText(cliente.telefono)
-        ciFcEditText.setText(cliente.ciFc)
-        ejecutivoEditText.setText(cliente.ejecutivo)
-        tipoRegimenEditText.setText(cliente.tipoRegimen)
+        
+        // Seleccionar CI-FC en el spinner
+        val tiposCiFc = arrayOf("Sin especificar", "CI", "FC")
+        val ciFcIndex = tiposCiFc.indexOf(cliente.ciFc)
+        if (ciFcIndex >= 0) {
+            ciFcSpinner.setSelection(ciFcIndex)
+        } else {
+            ciFcSpinner.setSelection(0)
+        }
+        
+        // Seleccionar ejecutivo en el spinner
+        val ejecutivosNombres = ejecutivoManager.getAllEjecutivos().map { it.name }.toMutableList()
+        ejecutivosNombres.add(0, "Sin ejecutivo")
+        val ejecutivoIndex = ejecutivosNombres.indexOf(cliente.ejecutivo)
+        if (ejecutivoIndex >= 0) {
+            ejecutivoSpinner.setSelection(ejecutivoIndex)
+        } else {
+            ejecutivoSpinner.setSelection(0)
+        }
+        
+        // Seleccionar tipo de régimen en el spinner
+        val tiposRegimen = arrayOf("Sin régimen", "Simplificado", "Tradicional")
+        val tipoRegimenIndex = tiposRegimen.indexOf(cliente.tipoRegimen)
+        if (tipoRegimenIndex >= 0) {
+            tipoRegimenSpinner.setSelection(tipoRegimenIndex)
+        } else {
+            tipoRegimenSpinner.setSelection(0)
+        }
+        
         patentadoCheckBox.isChecked = cliente.patentado
         pendientePagoCheckBox.isChecked = cliente.pendientePago
         
@@ -651,9 +699,9 @@ class QuestionsActivity : AppCompatActivity() {
         val tipoPersonaSpinner = dialogView.findViewById<Spinner>(R.id.tipoPersonaSpinner)
         val representanteEditText = dialogView.findViewById<EditText>(R.id.representanteEditText)
         val telefonoEditText = dialogView.findViewById<EditText>(R.id.telefonoEditText)
-        val ciFcEditText = dialogView.findViewById<EditText>(R.id.ciFcEditText)
-        val ejecutivoEditText = dialogView.findViewById<EditText>(R.id.ejecutivoEditText)
-        val tipoRegimenEditText = dialogView.findViewById<EditText>(R.id.tipoRegimenEditText)
+        val ciFcSpinner = dialogView.findViewById<Spinner>(R.id.ciFcSpinner)
+        val ejecutivoSpinner = dialogView.findViewById<Spinner>(R.id.ejecutivoSpinner)
+        val tipoRegimenSpinner = dialogView.findViewById<Spinner>(R.id.tipoRegimenSpinner)
         val patentadoCheckBox = dialogView.findViewById<CheckBox>(R.id.patentadoCheckBox)
         val pendientePagoCheckBox = dialogView.findViewById<CheckBox>(R.id.pendientePagoCheckBox)
         
@@ -663,10 +711,30 @@ class QuestionsActivity : AppCompatActivity() {
         tipoPersonaAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         tipoPersonaSpinner.adapter = tipoPersonaAdapter
         
+        // Configurar spinner de CI-FC
+        val tiposCiFc = arrayOf("Sin especificar", "CI", "FC")
+        val ciFcAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, tiposCiFc)
+        ciFcAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        ciFcSpinner.adapter = ciFcAdapter
+        
+        // Configurar spinner de ejecutivos
+        val ejecutivosLista = ejecutivoManager.getAllEjecutivos()
+        val ejecutivosNombres = ejecutivosLista.map { it.name }.toMutableList()
+        ejecutivosNombres.add(0, "Sin ejecutivo")
+        val ejecutivoAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, ejecutivosNombres)
+        ejecutivoAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        ejecutivoSpinner.adapter = ejecutivoAdapter
+        
+        // Configurar spinner de tipo de régimen
+        val tiposRegimen = arrayOf("Sin régimen", "Simplificado", "Tradicional")
+        val tipoRegimenAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, tiposRegimen)
+        tipoRegimenAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        tipoRegimenSpinner.adapter = tipoRegimenAdapter
+        
         // Llenar campos con datos existentes
         fillClienteFields(cliente, nombreClienteEditText, cedulaEditText, tipoPersonaSpinner,
-            representanteEditText, telefonoEditText, ciFcEditText,
-            ejecutivoEditText, tipoRegimenEditText, patentadoCheckBox, pendientePagoCheckBox)
+            representanteEditText, telefonoEditText, ciFcSpinner,
+            ejecutivoSpinner, tipoRegimenSpinner, patentadoCheckBox, pendientePagoCheckBox)
         
             AlertDialog.Builder(this)
                 .setTitle("Editar Información del Cliente")
@@ -678,9 +746,12 @@ class QuestionsActivity : AppCompatActivity() {
                 val tipoPersona = tipoPersonaOptions[tipoPersonaSpinner.selectedItemPosition]
                 val representante = representanteEditText.text.toString().trim()
                 val telefono = telefonoEditText.text.toString().trim()
-                val ciFc = ciFcEditText.text.toString().trim()
-                val ejecutivo = ejecutivoEditText.text.toString().trim()
-                val tipoRegimen = tipoRegimenEditText.text.toString().trim()
+                val ciFcSeleccionado = ciFcSpinner.selectedItem.toString()
+                val ciFc = if (ciFcSeleccionado == "Sin especificar") "" else ciFcSeleccionado
+                val ejecutivoSeleccionado = ejecutivoSpinner.selectedItem.toString()
+                val ejecutivo = if (ejecutivoSeleccionado == "Sin ejecutivo") "" else ejecutivoSeleccionado
+                val tipoRegimenSeleccionado = tipoRegimenSpinner.selectedItem.toString()
+                val tipoRegimen = if (tipoRegimenSeleccionado == "Sin régimen") "" else tipoRegimenSeleccionado
                 val patentado = patentadoCheckBox.isChecked
                 val pendientePago = pendientePagoCheckBox.isChecked
                 

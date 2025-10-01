@@ -10,8 +10,11 @@ import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.content.Context.RECEIVER_NOT_EXPORTED
 import android.view.View
+import android.widget.ArrayAdapter
 import android.widget.EditText
+import android.widget.Spinner
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -95,6 +98,8 @@ class MainActivity : AppCompatActivity() {
         } catch (e: Exception) {
             Toast.makeText(this, "Error al inicializar la aplicación: ${e.message}", Toast.LENGTH_LONG).show()
             e.printStackTrace()
+            // Registrar error en logs
+            AppLogger.getInstance(this).logError("MainActivity", "Error al inicializar la aplicación: ${e.message}", e)
         }
     }
     
@@ -137,10 +142,12 @@ class MainActivity : AppCompatActivity() {
     
     private fun showMoreOptionsDialog() {
         val options = mutableListOf<String>()
+        val icons = mutableListOf<Int>()
         val actions = mutableListOf<() -> Unit>()
         
         // Siempre mostrar configuración
-        options.add("Configuración")
+        options.add("⚙️ Configuración")
+        icons.add(R.drawable.ic_settings)
         actions.add {
             val intent = Intent(this, ConfigActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NO_ANIMATION
@@ -148,19 +155,33 @@ class MainActivity : AppCompatActivity() {
         }
         
         // Agregar notificaciones
-        options.add("Notificaciones")
+        options.add("🔔 Notificaciones")
+        icons.add(R.drawable.ic_megaphone)
         actions.add {
             val intent = Intent(this, NotificationsActivity::class.java)
+            intent.putExtra("isAdminMode", isAdminMode)
+            intent.flags = Intent.FLAG_ACTIVITY_NO_ANIMATION
+            startActivity(intent)
+        }
+        
+        // Agregar promesas
+        options.add("📅 Promesas de Pago")
+        icons.add(R.drawable.ic_promise)
+        actions.add {
+            val intent = Intent(this, PromesasActivity::class.java)
+            intent.putExtra("isAdminMode", isAdminMode)
             intent.flags = Intent.FLAG_ACTIVITY_NO_ANIMATION
             startActivity(intent)
         }
         
         // Mostrar opciones de admin si está en modo admin
         if (isAdminMode) {
-            options.add("Cerrar Sesión Admin")
+            options.add("🔓 Cerrar Sesión Admin")
+            icons.add(R.drawable.ic_admin)
             actions.add { showLogoutDialog() }
         } else {
-            options.add("Modo Admin")
+            options.add("🔒 Modo Admin")
+            icons.add(R.drawable.ic_admin)
             actions.add { showAdminDialog() }
         }
         
@@ -239,6 +260,7 @@ class MainActivity : AppCompatActivity() {
                     isSuperAdminMode = true
                     saveAdminSession(true, true)
                     updateAdminButtonText()
+                    questionsAdapter.notifyDataSetChanged()
                     Toast.makeText(this, "Modo Super Administrador activado", Toast.LENGTH_SHORT).show()
                 } else if (password == "morelia") {
                     // Precargar preguntas del checklist
@@ -246,6 +268,7 @@ class MainActivity : AppCompatActivity() {
                     isSuperAdminMode = false
                     saveAdminSession(true, false)
                     updateAdminButtonText()
+                    questionsAdapter.notifyDataSetChanged()
                     loadPredefinedQuestions()
                     Toast.makeText(this, "Modo Administrador activado - Preguntas precargadas", Toast.LENGTH_SHORT).show()
                 } else if (password == savedPassword && savedPassword.isNotEmpty()) {
@@ -254,6 +277,7 @@ class MainActivity : AppCompatActivity() {
                     isSuperAdminMode = false
                     saveAdminSession(true, false)
                     updateAdminButtonText()
+                    questionsAdapter.notifyDataSetChanged()
                     Toast.makeText(this, "Modo Administrador activado", Toast.LENGTH_SHORT).show()
                 } else {
                     Toast.makeText(this, "Contraseña incorrecta", Toast.LENGTH_SHORT).show()
@@ -329,19 +353,27 @@ class MainActivity : AppCompatActivity() {
         isSuperAdminMode = false
         clearAdminSession()
         updateAdminButtonText()
+        // Actualizar el adapter para reflejar los cambios del modo admin
+        questionsAdapter.notifyDataSetChanged()
         Toast.makeText(this, "Sesión cerrada", Toast.LENGTH_SHORT).show()
     }
     
     
     private fun setupQuestionsRecyclerView() {
         questionsAdapter = QuestionsAdapter(
-            onEditClick = { _ -> 
-                // No permitir edición desde la pantalla principal
-                Toast.makeText(this, "Edita las preguntas desde la sección Preguntas", Toast.LENGTH_SHORT).show()
+            onEditClick = { question -> 
+                if (isAdminMode) {
+                    editCliente(question)
+                } else {
+                    Toast.makeText(this, "Modo administrador requerido para editar", Toast.LENGTH_SHORT).show()
+                }
             },
-            onDeleteClick = { _ -> 
-                // No permitir eliminación desde la pantalla principal
-                Toast.makeText(this, "Elimina las preguntas desde la sección Preguntas", Toast.LENGTH_SHORT).show()
+            onDeleteClick = { question -> 
+                if (isAdminMode) {
+                    deleteCliente(question)
+                } else {
+                    Toast.makeText(this, "Modo administrador requerido para eliminar", Toast.LENGTH_SHORT).show()
+                }
             },
             onQuestionClick = { question -> 
                 // Mostrar detalles de la pregunta
@@ -352,7 +384,7 @@ class MainActivity : AppCompatActivity() {
                 android.util.Log.d("MainActivity", "onStatusToggle: RECIBIDO - ID: ${question.id}, Título: ${question.title}, Estado actual: ${question.isCompleted}")
                 toggleQuestionCompletion(question)
             },
-            isAdminMode = { false }, // Siempre false en la pantalla principal
+            isAdminMode = { isAdminMode }, // Usar el valor real de isAdminMode
             getEjecutivoName = { ejecutivoId -> getEjecutivoNameById(ejecutivoId) },
             getEjecutivoColor = { ejecutivoId -> getEjecutivoColorById(ejecutivoId) },
             getClienteInfo = { clienteId -> getClienteInfoById(clienteId) },
@@ -796,6 +828,190 @@ class MainActivity : AppCompatActivity() {
         android.util.Log.d("MainActivity", "toggleQuestionCompletion: COMPLETADO - Estado final: $status")
     }
     
+    private fun editCliente(question: Question) {
+        val clienteId = question.clienteId
+        if (clienteId == null) {
+            Toast.makeText(this, "No se puede editar: Cliente no encontrado", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        val cliente = clienteManager.getClienteById(clienteId)
+        if (cliente == null) {
+            Toast.makeText(this, "Cliente no encontrado", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        // Crear diálogo de edición
+        val dialogView = layoutInflater.inflate(R.layout.dialog_add_question, null)
+        
+        // Obtener referencias a los campos
+        val nombreEditText = dialogView.findViewById<EditText>(R.id.nombreClienteEditText)
+        val cedulaEditText = dialogView.findViewById<EditText>(R.id.cedulaEditText)
+        val tipoPersonaSpinner = dialogView.findViewById<Spinner>(R.id.tipoPersonaSpinner)
+        val representanteEditText = dialogView.findViewById<EditText>(R.id.representanteEditText)
+        val telefonoEditText = dialogView.findViewById<EditText>(R.id.telefonoEditText)
+        val ciFcSpinner = dialogView.findViewById<Spinner>(R.id.ciFcSpinner)
+        val ejecutivoSpinner = dialogView.findViewById<Spinner>(R.id.ejecutivoSpinner)
+        val tipoRegimenSpinner = dialogView.findViewById<Spinner>(R.id.tipoRegimenSpinner)
+        val patentadoCheckBox = dialogView.findViewById<android.widget.CheckBox>(R.id.patentadoCheckBox)
+        val pendientePagoCheckBox = dialogView.findViewById<android.widget.CheckBox>(R.id.pendientePagoCheckBox)
+        
+        // Configurar spinner de tipo de persona
+        val tiposPersona = arrayOf("Físico", "Jurídico")
+        val tipoPersonaAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, tiposPersona)
+        tipoPersonaAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        tipoPersonaSpinner.adapter = tipoPersonaAdapter
+        
+        // Configurar spinner de CI-FC
+        val tiposCiFc = arrayOf("Sin especificar", "CI", "FC")
+        val ciFcAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, tiposCiFc)
+        ciFcAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        ciFcSpinner.adapter = ciFcAdapter
+        
+        // Configurar spinner de ejecutivos
+        val ejecutivos = ejecutivoManager.getAllEjecutivos()
+        val ejecutivosNombres = ejecutivos.map { it.name }.toMutableList()
+        // Agregar opción vacía al inicio
+        ejecutivosNombres.add(0, "Sin ejecutivo")
+        val ejecutivoAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, ejecutivosNombres)
+        ejecutivoAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        ejecutivoSpinner.adapter = ejecutivoAdapter
+        
+        // Configurar spinner de tipo de régimen
+        val tiposRegimen = arrayOf("Sin régimen", "Simplificado", "Tradicional")
+        val tipoRegimenAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, tiposRegimen)
+        tipoRegimenAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        tipoRegimenSpinner.adapter = tipoRegimenAdapter
+        
+        // Prellenar con datos actuales
+        nombreEditText.setText(cliente.nombre)
+        cedulaEditText.setText(cliente.cedula)
+        
+        // Seleccionar tipo de persona actual
+        val tipoPersonaIndex = tiposPersona.indexOf(cliente.tipoPersona)
+        if (tipoPersonaIndex >= 0) {
+            tipoPersonaSpinner.setSelection(tipoPersonaIndex)
+        }
+        
+        representanteEditText.setText(cliente.representante)
+        telefonoEditText.setText(cliente.telefono)
+        
+        // Seleccionar CI-FC actual
+        val ciFcIndex = tiposCiFc.indexOf(cliente.ciFc)
+        if (ciFcIndex >= 0) {
+            ciFcSpinner.setSelection(ciFcIndex)
+        } else {
+            ciFcSpinner.setSelection(0) // Seleccionar "Sin especificar" si no se encuentra
+        }
+        
+        // Seleccionar ejecutivo actual
+        val ejecutivoIndex = ejecutivosNombres.indexOf(cliente.ejecutivo)
+        if (ejecutivoIndex >= 0) {
+            ejecutivoSpinner.setSelection(ejecutivoIndex)
+        } else {
+            ejecutivoSpinner.setSelection(0) // Seleccionar "Sin ejecutivo" si no se encuentra
+        }
+        
+        // Seleccionar tipo de régimen actual
+        val tipoRegimenIndex = tiposRegimen.indexOf(cliente.tipoRegimen)
+        if (tipoRegimenIndex >= 0) {
+            tipoRegimenSpinner.setSelection(tipoRegimenIndex)
+        } else {
+            tipoRegimenSpinner.setSelection(0) // Seleccionar "Sin régimen" si no se encuentra
+        }
+        
+        patentadoCheckBox.isChecked = cliente.patentado
+        pendientePagoCheckBox.isChecked = cliente.pendientePago
+        
+        AlertDialog.Builder(this)
+            .setTitle("Editar Cliente")
+            .setView(dialogView)
+            .setPositiveButton("Guardar") { _, _ ->
+                val nuevoNombre = nombreEditText.text.toString().trim()
+                val nuevaCedula = cedulaEditText.text.toString().trim()
+                val nuevoTipoPersona = tipoPersonaSpinner.selectedItem.toString()
+                val nuevoRepresentante = representanteEditText.text.toString().trim()
+                val nuevoTelefono = telefonoEditText.text.toString().trim()
+                val nuevoCiFcSeleccionado = ciFcSpinner.selectedItem.toString()
+                val nuevoCiFc = if (nuevoCiFcSeleccionado == "Sin especificar") "" else nuevoCiFcSeleccionado
+                val nuevoEjecutivoSeleccionado = ejecutivoSpinner.selectedItem.toString()
+                val nuevoEjecutivo = if (nuevoEjecutivoSeleccionado == "Sin ejecutivo") "" else nuevoEjecutivoSeleccionado
+                val nuevoTipoRegimenSeleccionado = tipoRegimenSpinner.selectedItem.toString()
+                val nuevoTipoRegimen = if (nuevoTipoRegimenSeleccionado == "Sin régimen") "" else nuevoTipoRegimenSeleccionado
+                val nuevoPatentado = patentadoCheckBox.isChecked
+                val nuevoPendientePago = pendientePagoCheckBox.isChecked
+                
+                if (nuevoNombre.isEmpty() || nuevaCedula.isEmpty()) {
+                    Toast.makeText(this, "Nombre y cédula son obligatorios", Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                
+                // Actualizar cliente con todos los campos
+                val clienteActualizado = cliente.copy(
+                    nombre = nuevoNombre,
+                    cedula = nuevaCedula,
+                    tipoPersona = nuevoTipoPersona,
+                    representante = nuevoRepresentante,
+                    telefono = nuevoTelefono,
+                    ciFc = nuevoCiFc,
+                    ejecutivo = nuevoEjecutivo,
+                    tipoRegimen = nuevoTipoRegimen,
+                    patentado = nuevoPatentado,
+                    pendientePago = nuevoPendientePago
+                )
+                clienteManager.updateCliente(clienteActualizado)
+                
+                // Actualizar pregunta asociada
+                val ejecutivos = ejecutivoManager.getAllEjecutivos()
+                val ejecutivoSeleccionado = ejecutivos.find { it.name.equals(nuevoEjecutivo, ignoreCase = true) }
+                val updatedQuestion = question.copy(
+                    title = nuevoNombre,
+                    subtitle = nuevaCedula,
+                    ejecutivoId = ejecutivoSeleccionado?.id ?: question.ejecutivoId
+                )
+                questionManager.updateQuestion(updatedQuestion)
+                
+                Toast.makeText(this, "Cliente actualizado exitosamente", Toast.LENGTH_SHORT).show()
+                loadQuestions()
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+    
+    private fun deleteCliente(question: Question) {
+        val clienteId = question.clienteId
+        if (clienteId == null) {
+            Toast.makeText(this, "No se puede eliminar: Cliente no encontrado", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        val cliente = clienteManager.getClienteById(clienteId)
+        if (cliente == null) {
+            Toast.makeText(this, "Cliente no encontrado", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        AlertDialog.Builder(this)
+            .setTitle("Eliminar Cliente")
+            .setMessage("¿Está seguro de que desea eliminar al cliente ${cliente.nombre}?\n\nEsta acción no se puede deshacer.")
+            .setPositiveButton("Eliminar") { _, _ ->
+                // Eliminar cliente
+                clienteManager.deleteCliente(cliente)
+                
+                // Eliminar pregunta asociada
+                questionManager.deleteQuestion(question)
+                
+                // Eliminar estado del cliente
+                clienteEstadoManager.deleteEstadoByClienteId(clienteId)
+                
+                Toast.makeText(this, "Cliente eliminado exitosamente", Toast.LENGTH_SHORT).show()
+                loadQuestions()
+            }
+            .setNegativeButton("Cancelar", null)
+            .setIcon(android.R.drawable.ic_dialog_alert)
+            .show()
+    }
+    
     private fun generateReport() {
         val questions = questionManager.getQuestionsOrderedByPosition()
         val ejecutivos = ejecutivoManager.getAllEjecutivos()
@@ -897,6 +1113,7 @@ class MainActivity : AppCompatActivity() {
         } catch (e: Exception) {
             Toast.makeText(this, "Error al generar el reporte: ${e.message}", Toast.LENGTH_LONG).show()
             e.printStackTrace()
+            AppLogger.getInstance(this).logError("MainActivity", "Error al generar el reporte: ${e.message}", e)
         }
     }
     
@@ -981,7 +1198,12 @@ class MainActivity : AppCompatActivity() {
         try {
             // Registrar BroadcastReceiver para cambios de configuración
             val filter = IntentFilter("com.checklist.app.CONFIG_CHANGED")
-            registerReceiver(configChangeReceiver, filter)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                // Android 13+ (API 33+) requiere especificar RECEIVER_NOT_EXPORTED
+                registerReceiver(configChangeReceiver, filter, RECEIVER_NOT_EXPORTED)
+            } else {
+                registerReceiver(configChangeReceiver, filter)
+            }
             
             // Solo recargar si es necesario (evitar recargas innecesarias)
             if (allQuestions.isEmpty()) {
@@ -999,6 +1221,7 @@ class MainActivity : AppCompatActivity() {
         } catch (e: Exception) {
             android.util.Log.e("MainActivity", "Error en onResume", e)
             Toast.makeText(this, "Error al reanudar la aplicación: ${e.message}", Toast.LENGTH_SHORT).show()
+            AppLogger.getInstance(this).logError("MainActivity", "Error en onResume: ${e.message}", e)
         }
     }
     
@@ -1275,8 +1498,8 @@ class MainActivity : AppCompatActivity() {
     
     private fun setupFloatingActionButton() {
         val fabMain = findViewById<com.google.android.material.floatingactionbutton.FloatingActionButton>(R.id.fabMain)
-        val fabLimpiar = findViewById<com.google.android.material.floatingactionbutton.FloatingActionButton>(R.id.fabLimpiar)
-        val fabAgregarCliente = findViewById<com.google.android.material.floatingactionbutton.FloatingActionButton>(R.id.fabAgregarCliente)
+        val fabLimpiar = findViewById<com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton>(R.id.fabLimpiar)
+        val fabAgregarCliente = findViewById<com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton>(R.id.fabAgregarCliente)
         
         var isMenuOpen = false
         

@@ -189,6 +189,14 @@ class ConfigActivity : AppCompatActivity() {
             showDeleteAllClientsConfirmation()
         }
         
+        binding.exportLogsButton.setOnClickListener {
+            exportLogs()
+        }
+        
+        binding.clearLogsButton.setOnClickListener {
+            clearLogs()
+        }
+        
         binding.orderToggleButton.setOnCheckedChangeListener { _, isChecked ->
             saveOrderPreference(isChecked)
             updateToggleButtonColor(isChecked)
@@ -211,6 +219,9 @@ class ConfigActivity : AppCompatActivity() {
         // Cargar configuración de eliminación de informes
         val allowDeleteReports = prefs.getBoolean("allow_delete_reports", false)
         binding.allowDeleteReportsSwitch.isChecked = allowDeleteReports
+        
+        // Actualizar estadísticas de logs
+        updateLogsStats()
     }
     
     private fun saveSettings() {
@@ -1033,6 +1044,99 @@ class ConfigActivity : AppCompatActivity() {
             runOnUiThread {
                 Toast.makeText(this, "Archivo guardado en: ${file.absolutePath}", Toast.LENGTH_LONG).show()
             }
+        }
+    }
+    
+    private fun exportLogs() {
+        try {
+            val logger = AppLogger.getInstance(this)
+            val filePath = logger.exportLogsToFile()
+            
+            if (filePath != null) {
+                androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle("Logs Exportados")
+                    .setMessage("El archivo de logs se ha exportado exitosamente.\n\n¿Deseas abrirlo?")
+                    .setPositiveButton("Abrir") { _, _ ->
+                        abrirArchivoLogs(filePath)
+                    }
+                    .setNeutralButton("Compartir") { _, _ ->
+                        compartirLogs(filePath)
+                    }
+                    .setNegativeButton("Cerrar", null)
+                    .show()
+            } else {
+                Toast.makeText(this, "No hay logs para exportar", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            Toast.makeText(this, "Error al exportar logs: ${e.message}", Toast.LENGTH_LONG).show()
+        }
+    }
+    
+    private fun clearLogs() {
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Limpiar Logs")
+            .setMessage("¿Está seguro de que desea eliminar todos los registros de logs?")
+            .setPositiveButton("Eliminar") { _, _ ->
+                val logger = AppLogger.getInstance(this)
+                logger.clearLogs()
+                updateLogsStats()
+                Toast.makeText(this, "Logs eliminados exitosamente", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+    
+    private fun updateLogsStats() {
+        try {
+            val logger = AppLogger.getInstance(this)
+            val totalLogs = logger.getLogsCount()
+            val errorsCount = logger.getErrorsCount()
+            val warningsCount = logger.getWarningsCount()
+            
+            binding.logsStatsText.text = "Registros: $totalLogs | Errores: $errorsCount | Advertencias: $warningsCount"
+        } catch (e: Exception) {
+            binding.logsStatsText.text = "Registros: Error al cargar estadísticas"
+        }
+    }
+    
+    private fun abrirArchivoLogs(filePath: String) {
+        try {
+            val file = File(filePath)
+            val uri = FileProvider.getUriForFile(
+                this,
+                "${packageName}.fileprovider",
+                file
+            )
+            
+            val intent = Intent(Intent.ACTION_VIEW)
+            intent.setDataAndType(uri, "text/plain")
+            intent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+            
+            startActivity(intent)
+        } catch (e: Exception) {
+            Toast.makeText(this, "No se pudo abrir el archivo de logs", Toast.LENGTH_LONG).show()
+        }
+    }
+    
+    private fun compartirLogs(filePath: String) {
+        try {
+            val file = File(filePath)
+            val uri = FileProvider.getUriForFile(
+                this,
+                "${packageName}.fileprovider",
+                file
+            )
+            
+            val intent = Intent(Intent.ACTION_SEND)
+            intent.type = "text/plain"
+            intent.putExtra(Intent.EXTRA_STREAM, uri)
+            intent.putExtra(Intent.EXTRA_SUBJECT, "Logs de Gestión de Clientes")
+            intent.putExtra(Intent.EXTRA_TEXT, "Adjunto el archivo de logs de la aplicación.")
+            intent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+            
+            startActivity(Intent.createChooser(intent, "Compartir Logs mediante..."))
+        } catch (e: Exception) {
+            Toast.makeText(this, "Error al compartir logs: ${e.message}", Toast.LENGTH_LONG).show()
         }
     }
 }

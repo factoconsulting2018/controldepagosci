@@ -5,15 +5,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp"
-    android:background="@color/green_50"
-    tools:context=".NotificationsActivity">
+    android:background="@color/white"
+    tools:context=".ReportePromesasActivity">
 
     <TextView
         android:id="@+id/titleText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Notificaciones de Deudas"
-        android:textSize="24sp"
+        android:text="Reporte de Promesas de Pago"
+        android:textSize="20sp"
         android:textStyle="bold"
         android:textColor="@color/green_700"
         android:layout_marginTop="16dp"
@@ -21,26 +21,53 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/notificacionesRecyclerView"
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="16dp"
         app:layout_constraintTop_toBottomOf="@id/titleText"
         app:layout_constraintBottom_toTopOf="@id/footer"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent">
 
-    <!-- Botón Flotante para Crear Notificación -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabCrearNotificacion"
+        <LinearLayout
+            android:id="@+id/reporteContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="8dp">
+            <!-- El reporte se generará dinámicamente aquí -->
+        </LinearLayout>
+
+    </ScrollView>
+
+    <!-- Botón Flotante Extendido para Compartir PDF -->
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/fabCompartirPdf"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        android:src="@drawable/ic_megaphone"
-        android:contentDescription="Crear Notificación"
-        app:backgroundTint="@color/green_500"
-        app:tint="@android:color/white"
+        android:text="Compartir"
+        android:textColor="@android:color/white"
+        app:icon="@android:drawable/ic_menu_share"
+        app:iconTint="@android:color/white"
+        android:contentDescription="Compartir PDF"
+        app:backgroundTint="@color/blue_500"
+        app:layout_constraintBottom_toTopOf="@id/fabGenerarPdf"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Botón Flotante Extendido para Generar PDF -->
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/fabGenerarPdf"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:text="Generar Reporte"
+        android:textColor="@android:color/white"
+        app:icon="@drawable/ic_pdf"
+        app:iconTint="@android:color/white"
+        android:contentDescription="Generar PDF"
+        app:backgroundTint="@color/red_500"
         app:layout_constraintBottom_toTopOf="@id/footer"
         app:layout_constraintEnd_toEndOf="parent" />
 
@@ -69,3 +96,4 @@
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+

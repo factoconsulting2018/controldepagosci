@@ -117,29 +117,33 @@
         app:layout_constraintBottom_toTopOf="@id/navigationBar"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Botón Limpiar -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
+    <!-- Botón Limpiar Extendido -->
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/fabLimpiar"
-        app:backgroundTint="?attr/colorTertiary"
-        app:tint="?attr/colorOnTertiary"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        android:src="@drawable/ic_clear_answers"
+        android:text="Limpiar Formulario"
+        android:textColor="@android:color/white"
+        app:icon="@drawable/ic_clear_answers"
+        app:iconTint="@android:color/white"
+        app:backgroundTint="@color/orange_500"
         android:contentDescription="Limpiar Selección"
         android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@id/fabMain"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Botón Agregar Cliente -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
+    <!-- Botón Agregar Cliente Extendido -->
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/fabAgregarCliente"
-        app:backgroundTint="?attr/colorSecondary"
-        app:tint="?attr/colorOnSecondary"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        android:src="@drawable/ic_add"
+        android:text="Nuevo Cliente"
+        android:textColor="@android:color/white"
+        app:icon="@drawable/ic_add"
+        app:iconTint="@android:color/white"
+        app:backgroundTint="@color/blue_500"
         android:contentDescription="Agregar Cliente"
         android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@id/fabLimpiar"
