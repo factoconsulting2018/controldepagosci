@@ -583,6 +583,11 @@ class QuestionsActivity : AppCompatActivity() {
         )
         
         val clienteId = clienteManager.addCliente(cliente)
+        android.util.Log.d("QuestionsActivity", "addQuestionWithCliente: Cliente creado con ID = $clienteId")
+        
+        // Verificar que el cliente se creó correctamente
+        val clienteVerificado = clienteManager.getClienteById(clienteId)
+        android.util.Log.d("QuestionsActivity", "addQuestionWithCliente: Cliente verificado = $clienteVerificado")
         
         // Crear pregunta con título y subtítulo basados en datos del cliente
         val question = Question(
@@ -592,6 +597,7 @@ class QuestionsActivity : AppCompatActivity() {
             position = position,
             clienteId = clienteId
         )
+        android.util.Log.d("QuestionsActivity", "addQuestionWithCliente: Question creada con clienteId = ${question.clienteId}")
         
             questionManager.addQuestion(question)
             loadQuestions()

@@ -108,10 +108,17 @@ class ClienteManager(private val context: Context) {
     
     fun getClienteById(id: Long): Cliente? {
         val localCache = cachedClientesById
-        if (localCache != null) return localCache[id]
+        if (localCache != null) {
+            val cliente = localCache[id]
+            android.util.Log.d("ClienteManager", "getClienteById: ID=$id, encontrado en cache=$cliente")
+            return cliente
+        }
         // fallback: inicializar caché
+        android.util.Log.d("ClienteManager", "getClienteById: Cache vacío, inicializando...")
         val list = getAllClientes()
-        return cachedClientesById?.get(id) ?: list.find { it.id == id }
+        val cliente = cachedClientesById?.get(id) ?: list.find { it.id == id }
+        android.util.Log.d("ClienteManager", "getClienteById: ID=$id, encontrado después de inicializar=$cliente")
+        return cliente
     }
     
     fun searchClientes(query: String): List<Cliente> {

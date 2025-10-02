@@ -48,6 +48,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var prefs: SharedPreferences
     private var currentEjecutivoFilter: Long? = null // Siempre null - sin filtro por defecto
     private var allQuestions: List<Question> = emptyList()
+    private var searchQuery: String = ""
     
     companion object {
         private const val PERMISSION_REQUEST_CODE = 1001
@@ -75,6 +76,7 @@ class MainActivity : AppCompatActivity() {
             setupFooter()
             setupFloatingProgressIndicator()
             setupFloatingActionButton()
+            setupSearchFunctionality()
             
             // Cargar datos esenciales primero (rápido)
             loadEssentialData()
@@ -406,6 +408,22 @@ class MainActivity : AppCompatActivity() {
         }
     }
     
+    private fun setupSearchFunctionality() {
+        val searchLayout = binding.searchLayout
+        val searchEditText = binding.searchEditText
+        
+        // Configurar listener de búsqueda
+        searchEditText.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                searchQuery = s?.toString() ?: ""
+                android.util.Log.d("MainActivity", "Búsqueda: '$searchQuery'")
+                updateQuestionsUI(allQuestions)
+            }
+            override fun afterTextChanged(s: android.text.Editable?) {}
+        })
+    }
+    
     private fun setupEjecutivoButtons() {
         val ejecutivos = ejecutivoManager.getAllEjecutivos()
         
@@ -676,6 +694,8 @@ class MainActivity : AppCompatActivity() {
         // Solo cargar si no hay datos o si es la primera vez
         if (allQuestions.isNotEmpty()) {
             android.util.Log.d("MainActivity", "loadQuestions: Ya hay datos cargados, omitiendo recarga")
+            // Aún así, actualizar la UI con los datos existentes
+            updateQuestionsUI(allQuestions)
             return
         }
         
@@ -737,6 +757,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
     
+    private fun refreshQuestionsList() {
+        android.util.Log.d("MainActivity", "refreshQuestionsList: Forzando recarga de la lista")
+        // Limpiar cache y recargar
+        allQuestions = emptyList()
+        loadQuestions()
+    }
+    
     private fun updateQuestionsUI(questions: List<Question>) {
         val t0 = System.currentTimeMillis()
         // Aplicar filtros
@@ -751,6 +778,24 @@ class MainActivity : AppCompatActivity() {
                 matches
             }
             android.util.Log.d("MainActivity", "updateQuestionsUI: Filtro por ejecutivo aplicado: ${filteredQuestions.size} preguntas")
+        }
+        
+        // Aplicar filtro de búsqueda si hay texto
+        if (searchQuery.isNotEmpty()) {
+            android.util.Log.d("MainActivity", "updateQuestionsUI: Aplicando filtro de búsqueda: '$searchQuery'")
+            filteredQuestions = filteredQuestions.filter { question ->
+                val cliente = clienteManager.getClienteById(question.clienteId ?: -1)
+                val matches = if (cliente != null) {
+                    cliente.nombre.contains(searchQuery, ignoreCase = true) || 
+                    cliente.cedula.contains(searchQuery, ignoreCase = true)
+                } else {
+                    question.title.contains(searchQuery, ignoreCase = true) || 
+                    question.subtitle.contains(searchQuery, ignoreCase = true)
+                }
+                android.util.Log.d("MainActivity", "updateQuestionsUI: Pregunta ${question.title} - Coincide búsqueda: $matches")
+                matches
+            }
+            android.util.Log.d("MainActivity", "updateQuestionsUI: Filtro de búsqueda aplicado: ${filteredQuestions.size} preguntas")
         }
         
         
@@ -849,15 +894,25 @@ class MainActivity : AppCompatActivity() {
     
     private fun editCliente(question: Question) {
         val clienteId = question.clienteId
+        android.util.Log.d("MainActivity", "editCliente: question.clienteId = $clienteId")
+        android.util.Log.d("MainActivity", "editCliente: question completa = $question")
         if (clienteId == null) {
             Toast.makeText(this, "No se puede editar: Cliente no encontrado", Toast.LENGTH_SHORT).show()
             return
         }
         
-        val cliente = clienteManager.getClienteById(clienteId)
+        var cliente = clienteManager.getClienteById(clienteId)
+        android.util.Log.d("MainActivity", "editCliente: cliente encontrado = $cliente")
         if (cliente == null) {
-            Toast.makeText(this, "Cliente no encontrado", Toast.LENGTH_SHORT).show()
-            return
+            // Intentar refrescar el cache y buscar nuevamente
+            android.util.Log.d("MainActivity", "editCliente: Cliente no encontrado, refrescando cache...")
+            val allClientes = clienteManager.getAllClientes()
+            android.util.Log.d("MainActivity", "editCliente: Total clientes en cache = ${allClientes.size}")
+            cliente = allClientes.find { it.id == clienteId }
+            if (cliente == null) {
+                Toast.makeText(this, "Cliente no encontrado", Toast.LENGTH_SHORT).show()
+                return
+            }
         }
         
         // Crear diálogo de edición
@@ -991,7 +1046,8 @@ class MainActivity : AppCompatActivity() {
                 questionManager.updateQuestion(updatedQuestion)
                 
                 Toast.makeText(this, "Cliente actualizado exitosamente", Toast.LENGTH_SHORT).show()
-                loadQuestions()
+                // Forzar recarga después de editar
+                refreshQuestionsList()
             }
             .setNegativeButton("Cancelar", null)
             .show()
@@ -999,15 +1055,25 @@ class MainActivity : AppCompatActivity() {
     
     private fun deleteCliente(question: Question) {
         val clienteId = question.clienteId
+        android.util.Log.d("MainActivity", "deleteCliente: question.clienteId = $clienteId")
+        android.util.Log.d("MainActivity", "deleteCliente: question completa = $question")
         if (clienteId == null) {
             Toast.makeText(this, "No se puede eliminar: Cliente no encontrado", Toast.LENGTH_SHORT).show()
             return
         }
         
-        val cliente = clienteManager.getClienteById(clienteId)
+        var cliente = clienteManager.getClienteById(clienteId)
+        android.util.Log.d("MainActivity", "deleteCliente: cliente encontrado = $cliente")
         if (cliente == null) {
-            Toast.makeText(this, "Cliente no encontrado", Toast.LENGTH_SHORT).show()
-            return
+            // Intentar refrescar el cache y buscar nuevamente
+            android.util.Log.d("MainActivity", "deleteCliente: Cliente no encontrado, refrescando cache...")
+            val allClientes = clienteManager.getAllClientes()
+            android.util.Log.d("MainActivity", "deleteCliente: Total clientes en cache = ${allClientes.size}")
+            cliente = allClientes.find { it.id == clienteId }
+            if (cliente == null) {
+                Toast.makeText(this, "Cliente no encontrado", Toast.LENGTH_SHORT).show()
+                return
+            }
         }
         
         AlertDialog.Builder(this)
@@ -1024,7 +1090,8 @@ class MainActivity : AppCompatActivity() {
                 clienteEstadoManager.deleteEstadoByClienteId(clienteId)
                 
                 Toast.makeText(this, "Cliente eliminado exitosamente", Toast.LENGTH_SHORT).show()
-                loadQuestions()
+                // Forzar recarga después de eliminar
+                refreshQuestionsList()
             }
             .setNegativeButton("Cancelar", null)
             .setIcon(android.R.drawable.ic_dialog_alert)
@@ -1479,6 +1546,19 @@ class MainActivity : AppCompatActivity() {
     private fun updateAdminButtonText() {
         // Las opciones de admin ahora están en el menú "Más"
         // Tutorial eliminado: no hacer nada adicional
+        
+        // Mostrar/ocultar buscador según modo administrador
+        val searchLayout = binding.searchLayout
+        if (isAdminMode) {
+            searchLayout.visibility = android.view.View.VISIBLE
+            android.util.Log.d("MainActivity", "updateAdminButtonText: Buscador visible en modo admin")
+        } else {
+            searchLayout.visibility = android.view.View.GONE
+            // Limpiar búsqueda al salir del modo admin
+            searchQuery = ""
+            binding.searchEditText.setText("")
+            android.util.Log.d("MainActivity", "updateAdminButtonText: Buscador oculto, búsqueda limpiada")
+        }
     }
     
     private fun loadChecklistTitle() {
