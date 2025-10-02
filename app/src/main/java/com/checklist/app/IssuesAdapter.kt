@@ -15,6 +15,7 @@ class IssuesAdapter(
     private val onEditarClick: (Issue) -> Unit,
     private val onEliminarClick: (Issue) -> Unit,
     private val onEstadoChanged: (Issue, EstadoIssue) -> Unit,
+    private val onCompartirClick: (Issue) -> Unit,
     private val isAdminMode: () -> Boolean
 ) : RecyclerView.Adapter<IssuesAdapter.IssueViewHolder>() {
     
@@ -42,6 +43,7 @@ class IssuesAdapter(
         private val issuesLayout: LinearLayout = itemView.findViewById(R.id.issuesLayout)
         private val totalIssuesText: TextView = itemView.findViewById(R.id.totalIssuesText)
         private val fechaCreacionText: TextView = itemView.findViewById(R.id.fechaCreacionText)
+        private val btnCompartir: Button = itemView.findViewById(R.id.btnCompartir)
         private val btnVerDetalle: Button = itemView.findViewById(R.id.btnVerDetalle)
         private val estadoSpinner: Spinner = itemView.findViewById(R.id.estadoSpinner)
         private val adminButtonsLayout: LinearLayout = itemView.findViewById(R.id.adminButtonsLayout)
@@ -86,6 +88,7 @@ class IssuesAdapter(
             fechaCreacionText.text = "Creado: ${sdfCreacion.format(Date(issue.fechaCreacion))}"
             fechaCreacionText.setTextColor(ContextCompat.getColor(itemView.context, R.color.white))
             
+            btnCompartir.setOnClickListener { onCompartirClick(issue) }
             btnVerDetalle.setOnClickListener { onVerDetalleClick(issue) }
             
             // Configurar Spinner de estado

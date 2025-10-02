@@ -69,6 +69,7 @@ class SoporteActivity : AppCompatActivity() {
             onEditarClick = { issue -> editarIssue(issue) },
             onEliminarClick = { issue -> eliminarIssue(issue) },
             onEstadoChanged = { issue, nuevoEstado -> cambiarEstadoIssue(issue, nuevoEstado) },
+            onCompartirClick = { issue -> compartirIssue(issue) },
             isAdminMode = { isAdminMode }
         )
         issuesRecyclerView.apply {
@@ -320,6 +321,37 @@ class SoporteActivity : AppCompatActivity() {
         val intent = Intent(this, ReporteSoporteActivity::class.java)
         intent.putExtra("isAdminMode", isAdminMode)
         startActivity(intent)
+    }
+    
+    private fun compartirIssue(issue: Issue) {
+        val sdf = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+        val sdfCreacion = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+        
+        val shareText = buildString {
+            append("🔧 *REPORTE DE SOPORTE*\n\n")
+            append("👤 *Cliente:* ${issue.clienteNombre}\n")
+            append("📊 *Estado:* ${issue.getEstadoTexto()}\n")
+            append("📅 *Creado:* ${sdfCreacion.format(Date(issue.fechaCreacion))}\n")
+            append("📋 *Total de Issues:* ${issue.getTotalIssues()}\n\n")
+            append("📝 *DETALLES DE ISSUES:*\n")
+            
+            issue.issues.forEachIndexed { index, issueItem ->
+                append("\n${index + 1}. *${issueItem.titulo}*\n")
+                append("   💬 *Mensaje:* ${issueItem.mensaje}\n")
+                append("   📅 *Fecha:* ${sdf.format(Date(issueItem.fechaIssue))}\n")
+            }
+            
+            append("\n📱 *Generado por:* CRM Checklist App")
+        }
+        
+        val shareIntent = Intent().apply {
+            action = Intent.ACTION_SEND
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, shareText)
+        }
+        
+        val chooser = Intent.createChooser(shareIntent, "Compartir Issue")
+        startActivity(chooser)
     }
 }
 

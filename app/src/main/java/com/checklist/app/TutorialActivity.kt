@@ -26,33 +26,33 @@ class TutorialActivity : AppCompatActivity() {
             imageRes = R.drawable.ic_check_gray
         ),
         TutorialStep(
-            title = "Paso 1: Completar el Formulario",
-            description = "El primer paso es completar todas las preguntas del checklist. Cada pregunta tiene un check box que cambia de gris a verde cuando la marcas como completada. Haz clic en cualquier parte de la tarjeta para cambiar el estado.",
+            title = "Lista de clientes",
+            description = "Gestiona tus clientes en la lista principal. Puedes filtrarlos por ejecutivo usando los botones superiores o ver 'Todos'. Cada cliente aparece como una tarjeta con su estado y datos clave.",
             imageRes = R.drawable.ic_check_gray
         ),
         TutorialStep(
-            title = "Marcar Preguntas",
-            description = "Al hacer clic en una pregunta: el check cambia a verde, el estado muestra 'Completado', y toda la tarjeta cambia de gris a verde. El indicador flotante se actualiza automáticamente mostrando tu progreso.",
+            title = "Agregar cliente",
+            description = "Usa el botón flotante '+' y selecciona 'Agregar cliente' para crear uno nuevo. Completa el formulario, elige el ejecutivo (o 'Sin ejecutivo' para 'Todos') y se añadirá a la lista automáticamente.",
             imageRes = R.drawable.ic_check_green
         ),
         TutorialStep(
-            title = "Paso 2: Generar Informe",
-            description = "Una vez completadas todas las preguntas, haz clic en el botón naranja 'Generar Informe' que está junto al indicador de progreso. Esto abrirá directamente el formulario para crear tu reporte PDF.",
+            title = "Estados: Pendiente / Pagado",
+            description = "Toca una tarjeta para alternar el estado. El color y la barra de progreso se actualizan. El orden inicial (PENDIENTE/PAGADO o PAGADO/PENDIENTE) se configura en 'Configuración'.",
             imageRes = R.drawable.ic_reports
         ),
         TutorialStep(
-            title = "Formulario de Reporte",
-            description = "Completa el formulario con tu nombre, puesto, jefe directo y comentarios opcionales. Al finalizar, se generará automáticamente un PDF con toda la información del checklist completado.",
+            title = "Generar reporte PDF",
+            description = "Pulsa el botón naranja 'Generar reporte' para crear un PDF con el resumen de tus clientes y estados. Completa el formulario y se guardará el archivo para compartirlo.",
             imageRes = R.drawable.ic_check_green
         ),
         TutorialStep(
-            title = "Navegación y Funciones",
-            description = "Usa la barra de navegación inferior para acceder a diferentes secciones: Preguntas, Categorías, Reportes y Configuración. El modo administrador te permite cargar preguntas precargadas y configurar opciones avanzadas.",
+            title = "Navegación y funciones",
+            description = "Usa la barra inferior para acceder a Clientes, Ejecutivos, Reportes y Configuración. Desde Configuración puedes importar clientes, cambiar el orden de estados y activar el tutorial automático.",
             imageRes = R.drawable.ic_admin
         ),
         TutorialStep(
             title = "¡Listo para Usar!",
-            description = "Ya conoces cómo funciona la aplicación. Recuerda: Paso 1 (Completar Formulario) → Paso 2 (Generar Informe). El indicador flotante te mostrará siempre tu progreso actual.",
+            description = "Ya conoces lo esencial: gestionar clientes, filtrar por ejecutivo, cambiar estados y generar reportes. Puedes reactivar este tutorial desde Configuración cuando quieras.",
             imageRes = R.drawable.ic_check_green
         )
     )

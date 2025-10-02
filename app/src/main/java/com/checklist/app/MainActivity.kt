@@ -46,7 +46,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
     private lateinit var prefs: SharedPreferences
-    private var currentEjecutivoFilter: Long? = null
+    private var currentEjecutivoFilter: Long? = null // Siempre null - sin filtro por defecto
     private var allQuestions: List<Question> = emptyList()
     
     companion object {
@@ -414,18 +414,12 @@ class MainActivity : AppCompatActivity() {
             android.util.Log.d("MainActivity", "  Ejecutivo: ${ejecutivo.name}, Color: ${ejecutivo.color}")
         }
         
-        // Configurar botón "TODOS"
-        binding.btnAllEjecutivos.setOnClickListener {
-            filterByEjecutivo(null)
-        }
-        
         // Crear botones dinámicamente para cada ejecutivo
         val layout = binding.ejecutivoFilterLayout
         layout.removeAllViews() // Limpiar botones existentes
         
-        // Agregar botón "TODOS" primero
-        val btnAll = binding.btnAllEjecutivos
-        layout.addView(btnAll)
+        // Ocultar botón "TODOS" - no se necesita filtro por defecto
+        binding.btnAllEjecutivos.visibility = android.view.View.GONE
         
         // Si no hay ejecutivos, mostrar mensaje
         if (ejecutivos.isEmpty()) {
@@ -490,15 +484,7 @@ class MainActivity : AppCompatActivity() {
         val ejecutivos = ejecutivoManager.getAllEjecutivos()
         val layout = binding.ejecutivoFilterLayout
         
-        // Actualizar botón "TODOS"
-        val isAllSelected = currentEjecutivoFilter == null
-        if (isAllSelected) {
-            binding.btnAllEjecutivos.setBackgroundColor(resources.getColor(com.checklist.app.R.color.green_500, null))
-            binding.btnAllEjecutivos.setTextColor(resources.getColor(com.checklist.app.R.color.white, null))
-        } else {
-            binding.btnAllEjecutivos.setBackgroundColor(resources.getColor(com.checklist.app.R.color.gray_300, null))
-            binding.btnAllEjecutivos.setTextColor(resources.getColor(com.checklist.app.R.color.black, null))
-        }
+        // Botón "TODOS" oculto - no se necesita actualizar
         
         // Actualizar botones de ejecutivos
         for (i in 1 until layout.childCount) {
@@ -589,13 +575,14 @@ class MainActivity : AppCompatActivity() {
     
     private fun ensureAllClientsHaveQuestions() {
         if (!::clienteManager.isInitialized) return
-        
+        val t0 = System.currentTimeMillis()
         val allClientes = clienteManager.getAllClientes()
         val existingQuestions = questionManager.getQuestionsOrderedByPosition()
         val existingClienteIds = existingQuestions.mapNotNull { it.clienteId }.toSet()
         
         // Si no hay clientes nuevos, no hacer nada
         if (allClientes.all { it.id in existingClienteIds }) {
+            android.util.Log.d("Perf", "ensureAllClientsHaveQuestions: 0ms (no new clients)")
             return
         }
         
@@ -665,6 +652,7 @@ class MainActivity : AppCompatActivity() {
         if (questionsToAdd.isNotEmpty()) {
             android.util.Log.d("MainActivity", "ensureAllClientsHaveQuestions: ${questionsToAdd.size} clientes inicializados con estado: $estadoInicial")
         }
+        android.util.Log.d("Perf", "ensureAllClientsHaveQuestions total: ${System.currentTimeMillis() - t0}ms (created=${questionsToAdd.size})")
     }
     
     private fun precargarClientes() {
@@ -697,18 +685,26 @@ class MainActivity : AppCompatActivity() {
             binding.progressText.text = "Cargando datos..."
         }
         
-        // Ejecutar operaciones costosas en background
+        // Ejecutar operaciones costosas en background, pero solo si faltan preguntas
         lifecycleScope.launch {
             try {
-                // Primero, asegurar que todos los clientes precargados tengan una entrada en la lista
-                ensureAllClientsHaveQuestions()
+                val t0 = System.currentTimeMillis()
+                // Solo sincronizar clientes->preguntas si faltan entradas
+                val existingQuestions = questionManager.getQuestionsOrderedByPosition()
+                val existingClienteIds = existingQuestions.mapNotNull { it.clienteId }.toSet()
+                val allClientes = clienteManager.getAllClientes()
+                val needSync = allClientes.any { it.id !in existingClienteIds }
+                if (needSync) {
+                    val tSync0 = System.currentTimeMillis()
+                    ensureAllClientsHaveQuestions()
+                    android.util.Log.d("Perf", "ensureAllClientsHaveQuestions: ${System.currentTimeMillis() - tSync0}ms")
+                }
 
                 val questions = questionManager.getQuestionsOrderedByPosition()
                 allQuestions = questions
                 
-                // Limpiar clientes duplicados (solo si es necesario)
-                val allClientes = clienteManager.getAllClientes()
-                if (allClientes.size > 100) { // Solo limpiar si hay muchos clientes
+                // Limpiar clientes duplicados (solo si es necesario y en background)
+                if (allClientes.size > 300) {
                     clienteManager.cleanDuplicateClientes()
                 }
                 
@@ -730,6 +726,7 @@ class MainActivity : AppCompatActivity() {
                     // Configurar botones de ejecutivo después de cargar datos
                     setupEjecutivoButtons()
                 }
+                android.util.Log.d("Perf", "loadQuestions total: ${System.currentTimeMillis() - t0}ms (questions=${questions.size})")
             } catch (e: Exception) {
                 android.util.Log.e("MainActivity", "Error en loadQuestions", e)
                 runOnUiThread {
@@ -741,7 +738,7 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun updateQuestionsUI(questions: List<Question>) {
-        
+        val t0 = System.currentTimeMillis()
         // Aplicar filtros
         var filteredQuestions = questions
         
@@ -776,11 +773,23 @@ class MainActivity : AppCompatActivity() {
         
         questionsAdapter.submitList(filteredQuestions)
         
+        // Auto-seleccionar el primer cliente si hay preguntas disponibles
+        if (filteredQuestions.isNotEmpty()) {
+            val firstQuestion = filteredQuestions.first()
+            android.util.Log.d("MainActivity", "Auto-seleccionando primer cliente: ${firstQuestion.title}")
+            // Auto-activar el primer cliente (marcar como completado si está pendiente)
+            if (!firstQuestion.isCompleted) {
+                toggleQuestionCompletion(firstQuestion)
+            }
+        }
+        
         // Mostrar/ocultar título según si hay preguntas
         binding.titleText.visibility = if (filteredQuestions.isNotEmpty()) android.view.View.VISIBLE else android.view.View.GONE
         
         // Actualizar indicador de proceso
         updateProgressIndicator(filteredQuestions)
+        val elapsed = System.currentTimeMillis() - t0
+        android.util.Log.d("Perf", "updateQuestionsUI: ${elapsed}ms (in=${questions.size}, out=${filteredQuestions.size})")
     }
     
     
@@ -1036,32 +1045,32 @@ class MainActivity : AppCompatActivity() {
     
     private fun showReportFormDialog(questions: List<Question>, ejecutivos: List<Ejecutivo>) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_report_form, null)
-        val nameEditText = dialogView.findViewById<EditText>(R.id.nameEditText)
-        val positionEditText = dialogView.findViewById<EditText>(R.id.positionEditText)
-        val supervisorEditText = dialogView.findViewById<EditText>(R.id.supervisorEditText)
+        val executiveSpinner = dialogView.findViewById<Spinner>(R.id.executiveSpinner)
         val commentsEditText = dialogView.findViewById<EditText>(R.id.commentsEditText)
+
+        // Poblar spinner de ejecutivos (nombres)
+        val ejecutivoNames = ejecutivos.map { it.name }
+        val spinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, ejecutivoNames)
+        spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        executiveSpinner.adapter = spinnerAdapter
         
         AlertDialog.Builder(this)
             .setTitle("Generar Reporte")
             .setView(dialogView)
             .setPositiveButton("Generar Reporte") { _, _ ->
-                val name = nameEditText.text.toString().trim()
-                val position = positionEditText.text.toString().trim()
-                val supervisor = supervisorEditText.text.toString().trim()
+                val selectedEjecutivo = executiveSpinner.selectedItem?.toString()?.trim() ?: ""
                 val comments = commentsEditText.text.toString().trim()
-                
-                if (name.isEmpty() || position.isEmpty() || supervisor.isEmpty()) {
-                    Toast.makeText(this, "Los campos Nombre, Puesto y Jefe Directo son obligatorios", Toast.LENGTH_SHORT).show()
+
+                if (selectedEjecutivo.isEmpty()) {
+                    Toast.makeText(this, "Selecciona un ejecutivo", Toast.LENGTH_SHORT).show()
                     return@setPositiveButton
                 }
-                
+
                 val reportInfo = ReportInfo(
-                    name = name,
-                    position = position,
-                    supervisor = supervisor,
+                    ejecutivo = selectedEjecutivo,
                     comments = comments
                 )
-                
+
                 generateReportWithInfo(questions, ejecutivos, reportInfo)
             }
             .setNegativeButton("Cancelar", null)
@@ -1215,19 +1224,10 @@ class MainActivity : AppCompatActivity() {
                 registerReceiver(configChangeReceiver, filter)
             }
             
-            // Solo recargar si es necesario (evitar recargas innecesarias)
-            if (allQuestions.isEmpty()) {
-                loadQuestions()
-            } else {
-                // Si ya hay datos, solo actualizar la UI
-                updateQuestionsUI(allQuestions)
-            }
+            // Recargar siempre para reflejar nuevos clientes/preguntas creados en otras pantallas
+            loadQuestions()
             
-            // Verificar si debe mostrar el tutorial (solo si no está en modo admin)
-            // y solo si no se está mostrando ya
-            if (!isAdminMode && !isFinishing) {
-                checkTutorial()
-            }
+            // Tutorial desactivado permanentemente
         } catch (e: Exception) {
             android.util.Log.e("MainActivity", "Error en onResume", e)
             Toast.makeText(this, "Error al reanudar la aplicación: ${e.message}", Toast.LENGTH_SHORT).show()
@@ -1478,8 +1478,7 @@ class MainActivity : AppCompatActivity() {
     
     private fun updateAdminButtonText() {
         // Las opciones de admin ahora están en el menú "Más"
-        // Verificar si debe mostrar el tutorial después de cambiar el modo admin
-        checkTutorial()
+        // Tutorial eliminado: no hacer nada adicional
     }
     
     private fun loadChecklistTitle() {
@@ -1578,33 +1577,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
     
-    private fun checkTutorial() {
-        val tutorialCompleted = prefs.getBoolean("tutorial_completed", false)
-        val tutorialAutoEnabled = prefs.getBoolean("tutorial_auto_enabled", false)
-        
-        // Mostrar tutorial si:
-        // 1. No se ha completado el tutorial Y
-        // 2. (No está en modo admin O el tutorial automático está activado)
-        val shouldShowTutorial = !tutorialCompleted && (!isAdminMode || tutorialAutoEnabled)
-        
-        if (shouldShowTutorial) {
-            try {
-                android.util.Log.d("MainActivity", "checkTutorial: Mostrando tutorial")
-                val intent = Intent(this, TutorialActivity::class.java)
-                intent.flags = Intent.FLAG_ACTIVITY_NO_ANIMATION
-                startActivity(intent)
-            } catch (e: Exception) {
-                android.util.Log.e("MainActivity", "Error al mostrar tutorial", e)
-                Toast.makeText(this, "Error al mostrar tutorial: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
-        } else {
-            android.util.Log.d("MainActivity", "checkTutorial: Tutorial no mostrado - Completado: $tutorialCompleted, Admin: $isAdminMode, Auto: $tutorialAutoEnabled")
-        }
-    }
+    // Tutorial eliminado
     
     private fun loadEssentialData() {
         // Cargar solo datos críticos para mostrar la UI rápidamente
         try {
+            val t0 = System.currentTimeMillis()
             loadChecklistTitle()
             checkFirstTimeSetup()
             initializeDefaultEjecutivos()
@@ -1618,6 +1596,8 @@ class MainActivity : AppCompatActivity() {
                 updateQuestionsUI(questions)
                 setupEjecutivoButtons()
             }
+            val elapsed = System.currentTimeMillis() - t0
+            android.util.Log.d("Perf", "loadEssentialData: ${elapsed}ms (questions=${questions.size})")
             
         } catch (e: Exception) {
             android.util.Log.e("MainActivity", "Error cargando datos esenciales", e)
@@ -1627,8 +1607,11 @@ class MainActivity : AppCompatActivity() {
     private suspend fun loadNonEssentialData() {
         // Cargar datos no críticos en background
         try {
-            // Precargar clientes (operación costosa)
-            precargarClientes()
+            // Precargar clientes (operación costosa) solo si aún no hay clientes cargados
+            val existingClientes = clienteManager.getAllClientes()
+            if (existingClientes.isEmpty()) {
+                precargarClientes()
+            }
             
             // Corregir estados iniciales
             correctInitialClientStates()
@@ -1645,9 +1628,7 @@ class MainActivity : AppCompatActivity() {
         try {
             // Solo corregir una vez, no cada vez que se inicia la app
             val alreadyCorrected = prefs.getBoolean("initial_states_corrected", false)
-            if (alreadyCorrected) {
-                return
-            }
+            if (alreadyCorrected) return
             
             val isInitialStatePendiente = prefs.getBoolean("client_initial_state_pendiente", true)
             val expectedCompletedState = !isInitialStatePendiente

@@ -18,58 +18,19 @@
             android:textColor="@color/green_700"
             android:layout_marginBottom="16dp" />
 
-        <!-- Nombre -->
+        <!-- Ejecutivo -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Nombre Completo"
+            android:text="Ejecutivo"
             android:textSize="14sp"
             android:textStyle="bold"
             android:layout_marginBottom="8dp" />
 
-        <EditText
-            android:id="@+id/nameEditText"
+        <Spinner
+            android:id="@+id/executiveSpinner"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Ingresa tu nombre completo"
-            android:padding="12dp"
-            android:background="@drawable/edittext_background"
-            android:layout_marginBottom="16dp" />
-
-        <!-- Puesto -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Puesto de Trabajo"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="8dp" />
-
-        <EditText
-            android:id="@+id/positionEditText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Ej: Supervisor, Gerente, Analista..."
-            android:padding="12dp"
-            android:background="@drawable/edittext_background"
-            android:layout_marginBottom="16dp" />
-
-        <!-- Jefe Directo -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Jefe Directo"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="8dp" />
-
-        <EditText
-            android:id="@+id/supervisorEditText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Nombre del jefe directo"
-            android:padding="12dp"
-            android:background="@drawable/edittext_background"
             android:layout_marginBottom="16dp" />
 
         <!-- Comentarios Adicionales -->

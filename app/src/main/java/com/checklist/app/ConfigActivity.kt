@@ -201,6 +201,8 @@ class ConfigActivity : AppCompatActivity() {
             saveOrderPreference(isChecked)
             updateToggleButtonColor(isChecked)
         }
+
+        // Tutorial eliminado
     }
     
     private fun loadCurrentSettings() {
@@ -212,9 +214,7 @@ class ConfigActivity : AppCompatActivity() {
         binding.orderToggleButton.isChecked = isPendienteFirst
         updateToggleButtonColor(isPendienteFirst)
         
-        // Cargar configuración del tutorial automático
-        val tutorialAutoEnabled = prefs.getBoolean("tutorial_auto_enabled", false)
-        binding.tutorialAutoSwitch.isChecked = tutorialAutoEnabled
+        // Tutorial eliminado: no cargar preferencia
         
         // Cargar configuración de eliminación de informes
         val allowDeleteReports = prefs.getBoolean("allow_delete_reports", false)
@@ -226,7 +226,6 @@ class ConfigActivity : AppCompatActivity() {
     
     private fun saveSettings() {
         val newTitle = binding.titleEditText.text.toString().trim()
-        val tutorialAutoEnabled = binding.tutorialAutoSwitch.isChecked
         val allowDeleteReports = binding.allowDeleteReportsSwitch.isChecked
         
         if (newTitle.isEmpty()) {
@@ -236,7 +235,6 @@ class ConfigActivity : AppCompatActivity() {
         
         prefs.edit()
             .putString("checklist_title", newTitle)
-            .putBoolean("tutorial_auto_enabled", tutorialAutoEnabled)
             .putBoolean("allow_delete_reports", allowDeleteReports)
             .apply()
         
@@ -389,9 +387,7 @@ class ConfigActivity : AppCompatActivity() {
                 reports.forEachIndexed { index, report ->
                     writer.write("=== REPORTE ${index + 1} ===\n")
                     writer.write("ID: ${String.format("%03d", report.id)}\n")
-                    writer.write("Nombre: ${report.name}\n")
-                    writer.write("Posición: ${report.position}\n")
-                    writer.write("Supervisor: ${report.supervisor}\n")
+                    writer.write("Ejecutivo: ${report.ejecutivo}\n")
                     writer.write("Comentarios: ${if (report.comments.isNotEmpty()) report.comments else "Sin comentarios"}\n")
                     writer.write("Fecha de creación: ${SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault()).format(Date(report.createdAt))}\n")
                     writer.write("Ruta del archivo PDF: ${report.filePath}\n\n")
@@ -401,9 +397,7 @@ class ConfigActivity : AppCompatActivity() {
                     writer.write("TÍTULO: $checklistTitle\n\n")
                     
                     writer.write("INFORMACIÓN DEL REPORTE:\n")
-                    writer.write("Nombre: ${report.name}\n")
-                    writer.write("Puesto: ${report.position}\n")
-                    writer.write("Jefe Directo: ${report.supervisor}\n")
+                    writer.write("Ejecutivo: ${report.ejecutivo}\n")
                     writer.write("Comentarios: ${if (report.comments.isNotEmpty()) report.comments else "Sin comentarios"}\n\n")
                     
                     writer.write("Generado el: ${SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date(report.createdAt))}\n\n")
@@ -515,9 +509,7 @@ class ConfigActivity : AppCompatActivity() {
                     val lines = section.split("\n").filter { it.isNotBlank() }
                     if (lines.isNotEmpty()) {
                         var id = 0L
-                        var name = ""
-                        var position = ""
-                        var supervisor = ""
+                        var ejecutivo = ""
                         var comments = ""
                         var createdAt = System.currentTimeMillis()
                         var filePath = ""
@@ -525,9 +517,7 @@ class ConfigActivity : AppCompatActivity() {
                         lines.forEach { line ->
                             when {
                                 line.startsWith("ID:") -> id = line.substring(3).trim().toLongOrNull() ?: 0L
-                                line.startsWith("Nombre:") -> name = line.substring(7).trim()
-                                line.startsWith("Posición:") -> position = line.substring(9).trim()
-                                line.startsWith("Supervisor:") -> supervisor = line.substring(11).trim()
+                                line.startsWith("Ejecutivo:") -> ejecutivo = line.substring(10).trim()
                                 line.startsWith("Comentarios:") -> comments = line.substring(12).trim()
                                 line.startsWith("Fecha de creación:") -> {
                                     // Parsear fecha si es posible
@@ -544,12 +534,10 @@ class ConfigActivity : AppCompatActivity() {
                             }
                         }
                         
-                        if (name.isNotEmpty() && position.isNotEmpty() && supervisor.isNotEmpty()) {
+                        if (ejecutivo.isNotEmpty()) {
                             val report = ReportInfo(
                                 id = id,
-                                name = name,
-                                position = position,
-                                supervisor = supervisor,
+                                ejecutivo = ejecutivo,
                                 comments = comments,
                                 filePath = filePath,
                                 createdAt = createdAt

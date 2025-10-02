@@ -531,8 +531,14 @@ class QuestionsActivity : AppCompatActivity() {
                 
                 if (nombreCliente.isNotEmpty() && cedula.isNotEmpty()) {
                     val ejecutivosList = ejecutivoManager.getAllEjecutivos()
+                    // Determinar el ID del ejecutivo seleccionado para que coincida con los filtros de la pantalla principal
+                    val selectedEjecutivoId = if (ejecutivoSeleccionado == "Sin ejecutivo") {
+                        0L
+                    } else {
+                        ejecutivosList.find { it.name.equals(ejecutivoSeleccionado, ignoreCase = true) }?.id ?: 0L
+                    }
                     addQuestionWithCliente(
-                        nombreCliente, cedula, ejecutivosList.first().id, 0, // Usar primer ejecutivo y posición 0
+                        nombreCliente, cedula, selectedEjecutivoId, 0,
                         nombreCliente, cedula, tipoPersona, representante, telefono,
                         ciFc, ejecutivo, tipoRegimen, patentado, pendientePago
                     )

@@ -72,6 +72,16 @@
             android:gravity="end">
 
             <Button
+                android:id="@+id/btnCompartir"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="📤 Compartir"
+                android:textSize="11sp"
+                android:backgroundTint="@color/green_500"
+                android:textColor="@color/white"
+                android:layout_marginEnd="4dp" />
+
+            <Button
                 android:id="@+id/btnVerDetalle"
                 android:layout_width="wrap_content"
                 android:layout_height="36dp"

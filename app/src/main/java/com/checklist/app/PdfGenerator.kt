@@ -69,15 +69,9 @@ class PdfGenerator(private val context: Context) {
                     .useAllAvailableWidth()
                     .setMarginBottom(20f)
                 
-                // Información del empleado
-                infoTable.addCell(Cell().add(Paragraph("Nombre:").setBold()))
-                infoTable.addCell(Cell().add(Paragraph(reportInfo.name)))
-                
-                infoTable.addCell(Cell().add(Paragraph("Puesto:").setBold()))
-                infoTable.addCell(Cell().add(Paragraph(reportInfo.position)))
-                
-                infoTable.addCell(Cell().add(Paragraph("Jefe Directo:").setBold()))
-                infoTable.addCell(Cell().add(Paragraph(reportInfo.supervisor)))
+                // Información del reporte
+                infoTable.addCell(Cell().add(Paragraph("Ejecutivo:").setBold()))
+                infoTable.addCell(Cell().add(Paragraph(reportInfo.ejecutivo)))
                 
                 infoTable.addCell(Cell().add(Paragraph("Comentarios:").setBold()))
                 infoTable.addCell(Cell().add(Paragraph(if (reportInfo.comments.isNotEmpty()) reportInfo.comments else "Sin comentarios")))
@@ -327,15 +321,9 @@ class PdfGenerator(private val context: Context) {
                     .useAllAvailableWidth()
                     .setMarginBottom(20f)
                 
-                // Información del empleado
-                infoTable.addCell(Cell().add(Paragraph("Nombre:").setBold()))
-                infoTable.addCell(Cell().add(Paragraph(reportInfo.name)))
-                
-                infoTable.addCell(Cell().add(Paragraph("Puesto:").setBold()))
-                infoTable.addCell(Cell().add(Paragraph(reportInfo.position)))
-                
-                infoTable.addCell(Cell().add(Paragraph("Jefe Directo:").setBold()))
-                infoTable.addCell(Cell().add(Paragraph(reportInfo.supervisor)))
+                // Información del reporte
+                infoTable.addCell(Cell().add(Paragraph("Ejecutivo:").setBold()))
+                infoTable.addCell(Cell().add(Paragraph(reportInfo.ejecutivo)))
                 
                 infoTable.addCell(Cell().add(Paragraph("Comentarios:").setBold()))
                 infoTable.addCell(Cell().add(Paragraph(if (reportInfo.comments.isNotEmpty()) reportInfo.comments else "Sin comentarios")))

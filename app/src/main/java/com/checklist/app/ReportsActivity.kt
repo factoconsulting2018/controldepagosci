@@ -86,12 +86,10 @@ class ReportsActivity : AppCompatActivity() {
             val shareIntent = Intent(Intent.ACTION_SEND).apply {
                 type = "application/pdf"
                 putExtra(Intent.EXTRA_STREAM, uri)
-                putExtra(Intent.EXTRA_SUBJECT, "Reporte de Checklist - ${report.name}")
+                putExtra(Intent.EXTRA_SUBJECT, "Reporte de Checklist - ${report.ejecutivo}")
                 putExtra(Intent.EXTRA_TEXT, "Reporte de Checklist\n\n" +
                         "ID: ${String.format("%03d", report.id)}\n" +
-                        "Nombre: ${report.name}\n" +
-                        "Posición: ${report.position}\n" +
-                        "Supervisor: ${report.supervisor}\n" +
+                        "Ejecutivo: ${report.ejecutivo}\n" +
                         "Comentarios: ${if (report.comments.isNotEmpty()) report.comments else "Sin comentarios"}")
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
@@ -101,12 +99,10 @@ class ReportsActivity : AppCompatActivity() {
                 setPackage("com.whatsapp")
                 type = "application/pdf"
                 putExtra(Intent.EXTRA_STREAM, uri)
-                putExtra(Intent.EXTRA_SUBJECT, "Reporte de Checklist - ${report.name}")
+                putExtra(Intent.EXTRA_SUBJECT, "Reporte de Checklist - ${report.ejecutivo}")
                 putExtra(Intent.EXTRA_TEXT, "Reporte de Checklist\n\n" +
                         "ID: ${String.format("%03d", report.id)}\n" +
-                        "Nombre: ${report.name}\n" +
-                        "Posición: ${report.position}\n" +
-                        "Supervisor: ${report.supervisor}\n" +
+                        "Ejecutivo: ${report.ejecutivo}\n" +
                         "Comentarios: ${if (report.comments.isNotEmpty()) report.comments else "Sin comentarios"}")
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
