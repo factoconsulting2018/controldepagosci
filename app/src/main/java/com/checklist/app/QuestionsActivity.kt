@@ -602,6 +602,9 @@ class QuestionsActivity : AppCompatActivity() {
             questionManager.addQuestion(question)
             loadQuestions()
             Toast.makeText(this@QuestionsActivity, "Cliente agregado exitosamente", Toast.LENGTH_SHORT).show()
+            
+            // Notificar a MainActivity que se creó un cliente
+            setResult(RESULT_OK)
     }
     
     private fun showClienteSelectionDialog(

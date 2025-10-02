@@ -52,6 +52,7 @@ class MainActivity : AppCompatActivity() {
     
     companion object {
         private const val PERMISSION_REQUEST_CODE = 1001
+        private const val REQUEST_CODE_QUESTIONS_ACTIVITY = 1002
     }
     
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -304,7 +305,7 @@ class MainActivity : AppCompatActivity() {
         intent.putExtra("isAdminMode", isAdminMode)
         intent.putExtra("openNewClientForm", true)
         intent.flags = Intent.FLAG_ACTIVITY_NO_ANIMATION
-        startActivity(intent)
+        startActivityForResult(intent, REQUEST_CODE_QUESTIONS_ACTIVITY)
     }
     
     private fun initializeDefaultEjecutivos() {
@@ -1558,6 +1559,16 @@ class MainActivity : AppCompatActivity() {
             searchQuery = ""
             binding.searchEditText.setText("")
             android.util.Log.d("MainActivity", "updateAdminButtonText: Buscador oculto, búsqueda limpiada")
+        }
+    }
+    
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        
+        if (requestCode == REQUEST_CODE_QUESTIONS_ACTIVITY) {
+            android.util.Log.d("MainActivity", "onActivityResult: Regresó de QuestionsActivity, recargando datos...")
+            // Forzar recarga cuando regrese de QuestionsActivity
+            refreshQuestionsList()
         }
     }
     
