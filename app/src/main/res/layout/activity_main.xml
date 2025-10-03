@@ -4,8 +4,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
-    android:paddingTop="50dp"
+    android:background="@color/white"
+    android:padding="7dp"
+    android:paddingTop="21dp"
     tools:context=".MainActivity">
 
     <TextView
@@ -44,16 +45,6 @@
             android:textColor="@color/dark_green"
             android:textStyle="bold" />
 
-        <Button
-            android:id="@+id/generateReportButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Generar Informe"
-            android:textSize="12sp"
-            android:backgroundTint="@color/green_500"
-            android:textColor="@color/white"
-            android:padding="8dp" />
-
     </LinearLayout>
 
     <!-- Abecedario para filtrar clientes -->
@@ -73,7 +64,7 @@
 
         <LinearLayout
             android:id="@+id/ejecutivoFilterLayout"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical">
@@ -81,25 +72,82 @@
             <Button
                 android:id="@+id/btnAllEjecutivos"
                 android:layout_width="wrap_content"
-                android:layout_height="32dp"
-                android:text="TODOS"
+                android:layout_height="28dp"
+                android:text="FILTROS"
                 android:textSize="10sp"
                 android:backgroundTint="@color/green_500"
                 android:textColor="@color/white"
-                android:layout_margin="2dp"
-                android:minWidth="60dp"
+                android:layout_margin="1dp"
+                android:minWidth="32dp"
                 android:padding="4dp" />
 
         </LinearLayout>
     </HorizontalScrollView>
 
+    <!-- Fila de búsqueda y botón generar informe -->
+    <LinearLayout
+        android:id="@+id/searchAndReportLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="0dp"
+        app:layout_constraintTop_toBottomOf="@id/ejecutivoScrollView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Buscador (encogido) -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/searchLayout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:visibility="visible"
+            app:boxBackgroundColor="@color/white"
+            app:boxCornerRadiusTopStart="8dp"
+            app:boxCornerRadiusTopEnd="8dp"
+            app:boxCornerRadiusBottomStart="8dp"
+            app:boxCornerRadiusBottomEnd="8dp"
+            app:boxStrokeColor="@color/green_500"
+            app:hintTextColor="@color/green_700"
+            app:startIconDrawable="@drawable/ic_search"
+            app:startIconTint="@color/green_500">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/searchEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Buscar cliente..."
+                android:textSize="12sp"
+                android:textColor="@color/black"
+                android:inputType="text"
+                android:maxLines="1" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Botón Generar Informe -->
+        <Button
+            android:id="@+id/generateReportButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Generar Informe"
+            android:textSize="10sp"
+            android:backgroundTint="@color/green_500"
+            android:textColor="@color/white"
+            android:padding="8dp"
+            android:minWidth="100dp"
+            android:maxLines="1" />
+
+    </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/questionsRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/ejecutivoScrollView"
+        app:layout_constraintTop_toBottomOf="@id/searchAndReportLayout"
         app:layout_constraintBottom_toTopOf="@id/navigationBar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
@@ -120,13 +168,27 @@
     <!-- Botón Limpiar -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabLimpiar"
-        app:backgroundTint="?attr/colorTertiary"
-        app:tint="?attr/colorOnTertiary"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:src="@drawable/ic_clear_answers"
         android:contentDescription="Limpiar Selección"
+        app:backgroundTint="@color/orange_500"
+        app:tint="@android:color/white"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/fabOrdenar"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Botón Ordenar A-Z -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabOrdenar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:src="@drawable/ic_category"
+        android:contentDescription="Ordenar Alfabéticamente"
+        app:backgroundTint="@color/purple_500"
+        app:tint="@android:color/white"
         android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@id/fabMain"
         app:layout_constraintEnd_toEndOf="parent" />
@@ -134,34 +196,49 @@
     <!-- Botón Agregar Cliente -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAgregarCliente"
-        app:backgroundTint="?attr/colorSecondary"
-        app:tint="?attr/colorOnSecondary"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:src="@drawable/ic_add"
         android:contentDescription="Agregar Cliente"
+        app:backgroundTint="@color/blue_500"
+        app:tint="@android:color/white"
         android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@id/fabLimpiar"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Botón Ir al Inicio - Flecha hacia arriba -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabScrollToTop"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:src="@drawable/ic_arrow_up"
+        android:contentDescription="Ir al primer cliente"
+        app:backgroundTint="@color/teal_700"
+        app:tint="?attr/colorOnPrimary"
+        app:layout_constraintBottom_toTopOf="@id/fabMain"
         app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- Navigation Bar Compact - Material 3 with Zoom Animations -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/navigationBar"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?attr/colorSurfaceContainer"
+        android:background="@color/green_200"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
         app:layout_constraintBottom_toTopOf="@id/footer"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:menu="@menu/navigation_menu"
         app:labelVisibilityMode="labeled"
-        app:itemIconSize="20dp"
+        app:itemIconSize="24dp"
         app:itemTextAppearanceActive="@style/TextAppearance.Material3.LabelSmall"
         app:itemTextAppearanceInactive="@style/TextAppearance.Material3.LabelSmall"
-        app:itemIconTint="?attr/colorOnSurfaceVariant"
-        app:itemTextColor="?attr/colorOnSurfaceVariant"
-        app:itemRippleColor="?attr/colorPrimary" />
+        app:itemIconTint="@color/white"
+        app:itemTextColor="@color/white"
+        app:itemRippleColor="@color/green_500" />
 
     <!-- Footer -->
     <LinearLayout

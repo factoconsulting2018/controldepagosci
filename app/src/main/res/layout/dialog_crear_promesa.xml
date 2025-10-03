@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/white"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Crear Promesa de Pago"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/green_700"
+            android:gravity="center"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Buscador de Cliente con Filtros -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/clienteInputLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:hint="Buscar Cliente"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/clienteSearchEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:textSize="14sp"
+                android:drawableEnd="@drawable/ic_search"
+                android:drawablePadding="8dp" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Filtros de Búsqueda -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp"
+            android:gravity="center_vertical">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/filterNombreChip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nombre"
+                android:checked="true"
+                style="@style/Widget.MaterialComponents.Chip.Filter" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/filterCedulaChip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cédula"
+                android:checked="true"
+                android:layout_marginStart="8dp"
+                style="@style/Widget.MaterialComponents.Chip.Filter" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/filterTelefonoChip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Teléfono"
+                android:checked="true"
+                android:layout_marginStart="8dp"
+                style="@style/Widget.MaterialComponents.Chip.Filter" />
+
+        </LinearLayout>
+
+        <!-- Lista de Resultados de Búsqueda -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/clientesRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/placeholder_background"
+            android:padding="4dp"
+            android:visibility="gone" />
+
+        <!-- Información del Cliente Seleccionado -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/clienteInfoCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:visibility="gone"
+            app:cardBackgroundColor="@color/green_50"
+            app:cardElevation="2dp"
+            app:cardCornerRadius="8dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="12dp">
+
+                <TextView
+                    android:id="@+id/clienteInfoNombre"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Nombre: "
+                    android:textSize="12sp"
+                    android:textColor="@color/dark_green" />
+
+                <TextView
+                    android:id="@+id/clienteInfoCedula"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Cédula: "
+                    android:textSize="12sp"
+                    android:textColor="@color/dark_green" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Título de Promesas -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Promesas de Pago"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/green_700"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Contenedor de Promesas -->
+        <LinearLayout
+            android:id="@+id/promesasContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <!-- Los items de promesa se agregarán dinámicamente aquí -->
+        </LinearLayout>
+
+        <!-- Botón para agregar más promesas -->
+        <Button
+            android:id="@+id/btnAgregarPromesa"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="+ Agregar Promesa"
+            android:textSize="12sp"
+            android:backgroundTint="@color/green_500"
+            android:textColor="@color/white"
+            android:layout_gravity="center"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Total -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardBackgroundColor="@color/blue_50"
+            app:cardElevation="2dp"
+            app:cardCornerRadius="8dp">
+
+            <TextView
+                android:id="@+id/totalText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="12dp"
+                android:text="Total: ₡0.00"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/blue_700"
+                android:gravity="center" />
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Botón Guardar Promesa -->
+        <Button
+            android:id="@+id/btnGuardarPromesa"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="💾 Guardar Promesa de Pago"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:backgroundTint="@color/green_500"
+            android:textColor="@color/white"
+            android:padding="16dp"
+            android:layout_marginBottom="8dp" />
+
+    </LinearLayout>
+
+</ScrollView>
+

@@ -30,9 +30,9 @@ class ReportsAdapter(
         fun bind(report: ReportInfo) {
             binding.apply {
                 idText.text = "ID: ${String.format("%03d", report.id)}"
-                nameText.text = report.name
-                positionText.text = report.position
-                supervisorText.text = report.supervisor
+                nameText.text = report.ejecutivo
+                positionText.visibility = android.view.View.GONE
+                supervisorText.visibility = android.view.View.GONE
                 dateText.text = if (report.comments.isNotEmpty()) report.comments else "Sin comentarios"
                 
                 // Mostrar/ocultar botones según los permisos

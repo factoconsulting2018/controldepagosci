@@ -6,13 +6,13 @@
     android:layout_height="match_parent"
     android:padding="16dp"
     android:background="@color/green_50"
-    tools:context=".NotificationsActivity">
+    tools:context=".SoporteActivity">
 
     <TextView
         android:id="@+id/titleText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Notificaciones de Deudas"
+        android:text="Soporte"
         android:textSize="24sp"
         android:textStyle="bold"
         android:textColor="@color/green_700"
@@ -22,7 +22,7 @@
         app:layout_constraintEnd_toEndOf="parent" />
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/notificacionesRecyclerView"
+        android:id="@+id/issuesRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="16dp"
@@ -31,16 +31,33 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Botón Flotante para Crear Notificación -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabCrearNotificacion"
+    <!-- Botón Flotante Extendido para Generar Reporte -->
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/fabGenerarReporte"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        android:src="@drawable/ic_megaphone"
-        android:contentDescription="Crear Notificación"
+        android:text="Reportes"
+        android:textColor="@android:color/white"
+        app:icon="@drawable/ic_reports"
+        app:iconTint="@android:color/white"
+        android:contentDescription="Generar Reporte"
+        app:backgroundTint="@color/blue_500"
+        app:layout_constraintBottom_toTopOf="@id/fabNuevoIssue"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Botón Flotante Extendido para Nuevo Issue -->
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/fabNuevoIssue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:text="Crear Nuevo"
+        android:textColor="@android:color/white"
+        app:icon="@drawable/ic_add"
+        app:iconTint="@android:color/white"
+        android:contentDescription="Nuevo Issue"
         app:backgroundTint="@color/green_500"
-        app:tint="@android:color/white"
         app:layout_constraintBottom_toTopOf="@id/footer"
         app:layout_constraintEnd_toEndOf="parent" />
 
@@ -69,3 +86,4 @@
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+

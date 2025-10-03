@@ -67,10 +67,7 @@
             android:exported="false"
             android:theme="@style/Theme.ChecklistApp" />
             
-        <activity
-            android:name=".TutorialActivity"
-            android:exported="false"
-            android:theme="@style/Theme.ChecklistApp" />
+        <!-- TutorialActivity removida -->
             
         <activity
             android:name=".ImportResultDialogActivity"
@@ -79,6 +76,26 @@
             
         <activity
             android:name=".NotificationsActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ChecklistApp" />
+            
+        <activity
+            android:name=".PromesasActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ChecklistApp" />
+            
+        <activity
+            android:name=".ReportePromesasActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ChecklistApp" />
+            
+        <activity
+            android:name=".SoporteActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ChecklistApp" />
+            
+        <activity
+            android:name=".ReporteSoporteActivity"
             android:exported="false"
             android:theme="@style/Theme.ChecklistApp" />
             

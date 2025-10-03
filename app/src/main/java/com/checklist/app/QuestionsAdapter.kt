@@ -75,10 +75,14 @@ class QuestionsAdapter(
             val buttonVisibility = if (isAdminMode) android.view.View.VISIBLE else android.view.View.GONE
             binding.actionButtons.visibility = buttonVisibility
             
-            // Configurar clic en toda la tarjeta para cambiar estado
-            binding.root.setOnClickListener { 
-                android.util.Log.d("QuestionsAdapter", "onClick: Card clickeado para pregunta ${question.id}, estado actual: ${question.isCompleted}")
-                onStatusToggle(question) 
+            // Configurar clic en área de estado para evitar conflictos de scroll
+            binding.checkBox.setOnClickListener {
+                android.util.Log.d("QuestionsAdapter", "onClick: CheckBox clickeado para pregunta ${question.id}, estado actual: ${question.isCompleted}")
+                onStatusToggle(question)
+            }
+            binding.statusText.setOnClickListener {
+                android.util.Log.d("QuestionsAdapter", "onClick: StatusText clickeado para pregunta ${question.id}, estado actual: ${question.isCompleted}")
+                onStatusToggle(question)
             }
             
             // Configurar clic en botones de acción
@@ -110,7 +114,15 @@ class QuestionsAdapter(
         }
 
         override fun areContentsTheSame(oldItem: Question, newItem: Question): Boolean {
-            return oldItem == newItem
+            // Comparar solo las propiedades que afectan la visualización
+            val contentsSame = oldItem.title == newItem.title &&
+                              oldItem.subtitle == newItem.subtitle &&
+                              oldItem.isCompleted == newItem.isCompleted &&
+                              oldItem.clienteId == newItem.clienteId &&
+                              oldItem.ejecutivoId == newItem.ejecutivoId
+            
+            android.util.Log.d("QuestionDiffCallback", "areContentsTheSame: ID=${oldItem.id}, Same=$contentsSame, OldCompleted=${oldItem.isCompleted}, NewCompleted=${newItem.isCompleted}")
+            return contentsSame
         }
     }
 }

@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardElevation="4dp"
+    app:cardCornerRadius="12dp"
+    app:cardBackgroundColor="@color/white">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Header con nombre del cliente -->
+        <TextView
+            android:id="@+id/clienteNombreText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Nombre Cliente"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="@color/green_700"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Promesas de pago -->
+        <LinearLayout
+            android:id="@+id/promesasPagoLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="8dp">
+            <!-- Se llenarán dinámicamente -->
+        </LinearLayout>
+
+        <!-- Total del cliente -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/gray_300"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/totalClienteText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Total: ₡0.00"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/blue_700"
+            android:gravity="end"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Fecha de creación -->
+        <TextView
+            android:id="@+id/fechaCreacionText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Creada: 01/10/2025"
+            android:textSize="11sp"
+            android:textColor="@color/gray_500"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Botones de acción -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="end">
+
+            <Button
+                android:id="@+id/btnVerDetalle"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="Ver Detalle"
+                android:textSize="11sp"
+                android:backgroundTint="@color/blue_500"
+                android:textColor="@color/white"
+                android:layout_marginEnd="4dp" />
+
+        </LinearLayout>
+
+        <!-- Botones de administración -->
+        <LinearLayout
+            android:id="@+id/adminButtonsLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="end"
+            android:layout_marginTop="8dp"
+            android:visibility="gone">
+
+            <Button
+                android:id="@+id/btnEditarPromesa"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="Editar"
+                android:textSize="11sp"
+                android:backgroundTint="@color/orange_500"
+                android:textColor="@color/white"
+                android:layout_marginEnd="4dp" />
+
+            <Button
+                android:id="@+id/btnEliminarPromesa"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="Eliminar"
+                android:textSize="11sp"
+                android:backgroundTint="@color/red_500"
+                android:textColor="@color/white" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>
+

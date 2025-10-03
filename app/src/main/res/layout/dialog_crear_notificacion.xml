@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Crear Notificación de Deuda"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/green_700"
+            android:gravity="center"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Buscador de Cliente con Filtros -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/clienteInputLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:hint="Buscar Cliente"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/clienteSearchEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:textSize="14sp"
+                android:drawableEnd="@drawable/ic_search"
+                android:drawablePadding="8dp" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Filtros de Búsqueda -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp"
+            android:gravity="center_vertical">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/filterNombreChip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nombre"
+                android:checked="true"
+                style="@style/Widget.MaterialComponents.Chip.Filter" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/filterCedulaChip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cédula"
+                android:checked="true"
+                android:layout_marginStart="8dp"
+                style="@style/Widget.MaterialComponents.Chip.Filter" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/filterTelefonoChip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Teléfono"
+                android:checked="true"
+                android:layout_marginStart="8dp"
+                style="@style/Widget.MaterialComponents.Chip.Filter" />
+
+        </LinearLayout>
+
+        <!-- Lista de Resultados de Búsqueda -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/clientesRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/placeholder_background"
+            android:padding="4dp"
+            android:visibility="gone" />
+
+        <!-- Información del Cliente Seleccionado -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/clienteInfoCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:visibility="gone"
+            app:cardBackgroundColor="@color/green_50"
+            app:cardElevation="2dp"
+            app:cardCornerRadius="8dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="12dp">
+
+                <TextView
+                    android:id="@+id/clienteInfoNombre"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Nombre: "
+                    android:textSize="12sp"
+                    android:textColor="@color/dark_green" />
+
+                <TextView
+                    android:id="@+id/clienteInfoCedula"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Cédula: "
+                    android:textSize="12sp"
+                    android:textColor="@color/dark_green" />
+
+                <TextView
+                    android:id="@+id/clienteInfoTelefono"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Teléfono: "
+                    android:textSize="12sp"
+                    android:textColor="@color/dark_green" />
+
+                <TextView
+                    android:id="@+id/clienteInfoEjecutivo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Ejecutivo: "
+                    android:textSize="12sp"
+                    android:textColor="@color/dark_green" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Monto Pendiente -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:hint="Monto Pendiente (₡)"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/montoPendienteEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"
+                android:textSize="14sp" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Etiquetas para Personalizar Mensaje -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Etiquetas disponibles:"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:textColor="@color/green_700"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="{nombre} - Nombre del cliente\n{cedula} - Cédula del cliente\n{monto} - Monto pendiente\n{ejecutivo} - Ejecutivo asignado"
+            android:textSize="11sp"
+            android:textColor="@color/gray_600"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Mensaje -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:hint="Mensaje Personalizado"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/mensajeEditText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textMultiLine"
+                android:maxLength="500"
+                android:minLines="5"
+                android:maxLines="10"
+                android:gravity="top|start"
+                android:textSize="14sp"
+                android:hint="Estimado(a) {nombre}, le recordamos que tiene un saldo pendiente de {monto} colones. Por favor, comuníquese con su ejecutivo {ejecutivo} para más información.\n\nTeléfono: 4070-0485 / 8613-0001" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Contador de caracteres -->
+        <TextView
+            android:id="@+id/caracteresCounter"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="0/500 caracteres"
+            android:textSize="11sp"
+            android:textColor="@color/gray_600"
+            android:gravity="end"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Vista previa del mensaje -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Vista previa:"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:textColor="@color/green_700"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="4dp" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            app:cardBackgroundColor="@color/gray_100"
+            app:cardElevation="2dp"
+            app:cardCornerRadius="8dp">
+
+            <TextView
+                android:id="@+id/mensajePreview"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="12dp"
+                android:text="El mensaje personalizado se mostrará aquí..."
+                android:textSize="12sp"
+                android:textColor="@color/black"
+                android:minHeight="80dp" />
+
+        </com.google.android.material.card.MaterialCardView>
+
+    </LinearLayout>
+
+</ScrollView>
+

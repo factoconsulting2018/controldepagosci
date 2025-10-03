@@ -189,10 +189,20 @@ class ConfigActivity : AppCompatActivity() {
             showDeleteAllClientsConfirmation()
         }
         
+        binding.exportLogsButton.setOnClickListener {
+            exportLogs()
+        }
+        
+        binding.clearLogsButton.setOnClickListener {
+            clearLogs()
+        }
+        
         binding.orderToggleButton.setOnCheckedChangeListener { _, isChecked ->
             saveOrderPreference(isChecked)
             updateToggleButtonColor(isChecked)
         }
+
+        // Tutorial eliminado
     }
     
     private fun loadCurrentSettings() {
@@ -204,19 +214,24 @@ class ConfigActivity : AppCompatActivity() {
         binding.orderToggleButton.isChecked = isPendienteFirst
         updateToggleButtonColor(isPendienteFirst)
         
-        // Cargar configuración del tutorial automático
-        val tutorialAutoEnabled = prefs.getBoolean("tutorial_auto_enabled", false)
-        binding.tutorialAutoSwitch.isChecked = tutorialAutoEnabled
+        // Tutorial eliminado: no cargar preferencia
         
         // Cargar configuración de eliminación de informes
         val allowDeleteReports = prefs.getBoolean("allow_delete_reports", false)
         binding.allowDeleteReportsSwitch.isChecked = allowDeleteReports
+        
+        // Cargar configuración de subida de imágenes
+        val imageUploadEnabled = prefs.getBoolean("image_upload_enabled", false)
+        binding.imageUploadSwitch.isChecked = imageUploadEnabled
+        
+        // Actualizar estadísticas de logs
+        updateLogsStats()
     }
     
     private fun saveSettings() {
         val newTitle = binding.titleEditText.text.toString().trim()
-        val tutorialAutoEnabled = binding.tutorialAutoSwitch.isChecked
         val allowDeleteReports = binding.allowDeleteReportsSwitch.isChecked
+        val imageUploadEnabled = binding.imageUploadSwitch.isChecked
         
         if (newTitle.isEmpty()) {
             Toast.makeText(this, "El título no puede estar vacío", Toast.LENGTH_SHORT).show()
@@ -225,8 +240,8 @@ class ConfigActivity : AppCompatActivity() {
         
         prefs.edit()
             .putString("checklist_title", newTitle)
-            .putBoolean("tutorial_auto_enabled", tutorialAutoEnabled)
             .putBoolean("allow_delete_reports", allowDeleteReports)
+            .putBoolean("image_upload_enabled", imageUploadEnabled)
             .apply()
         
         Toast.makeText(this, "Configuración guardada", Toast.LENGTH_SHORT).show()
@@ -378,9 +393,7 @@ class ConfigActivity : AppCompatActivity() {
                 reports.forEachIndexed { index, report ->
                     writer.write("=== REPORTE ${index + 1} ===\n")
                     writer.write("ID: ${String.format("%03d", report.id)}\n")
-                    writer.write("Nombre: ${report.name}\n")
-                    writer.write("Posición: ${report.position}\n")
-                    writer.write("Supervisor: ${report.supervisor}\n")
+                    writer.write("Ejecutivo: ${report.ejecutivo}\n")
                     writer.write("Comentarios: ${if (report.comments.isNotEmpty()) report.comments else "Sin comentarios"}\n")
                     writer.write("Fecha de creación: ${SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault()).format(Date(report.createdAt))}\n")
                     writer.write("Ruta del archivo PDF: ${report.filePath}\n\n")
@@ -390,9 +403,7 @@ class ConfigActivity : AppCompatActivity() {
                     writer.write("TÍTULO: $checklistTitle\n\n")
                     
                     writer.write("INFORMACIÓN DEL REPORTE:\n")
-                    writer.write("Nombre: ${report.name}\n")
-                    writer.write("Puesto: ${report.position}\n")
-                    writer.write("Jefe Directo: ${report.supervisor}\n")
+                    writer.write("Ejecutivo: ${report.ejecutivo}\n")
                     writer.write("Comentarios: ${if (report.comments.isNotEmpty()) report.comments else "Sin comentarios"}\n\n")
                     
                     writer.write("Generado el: ${SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(Date(report.createdAt))}\n\n")
@@ -504,9 +515,7 @@ class ConfigActivity : AppCompatActivity() {
                     val lines = section.split("\n").filter { it.isNotBlank() }
                     if (lines.isNotEmpty()) {
                         var id = 0L
-                        var name = ""
-                        var position = ""
-                        var supervisor = ""
+                        var ejecutivo = ""
                         var comments = ""
                         var createdAt = System.currentTimeMillis()
                         var filePath = ""
@@ -514,9 +523,7 @@ class ConfigActivity : AppCompatActivity() {
                         lines.forEach { line ->
                             when {
                                 line.startsWith("ID:") -> id = line.substring(3).trim().toLongOrNull() ?: 0L
-                                line.startsWith("Nombre:") -> name = line.substring(7).trim()
-                                line.startsWith("Posición:") -> position = line.substring(9).trim()
-                                line.startsWith("Supervisor:") -> supervisor = line.substring(11).trim()
+                                line.startsWith("Ejecutivo:") -> ejecutivo = line.substring(10).trim()
                                 line.startsWith("Comentarios:") -> comments = line.substring(12).trim()
                                 line.startsWith("Fecha de creación:") -> {
                                     // Parsear fecha si es posible
@@ -533,12 +540,10 @@ class ConfigActivity : AppCompatActivity() {
                             }
                         }
                         
-                        if (name.isNotEmpty() && position.isNotEmpty() && supervisor.isNotEmpty()) {
+                        if (ejecutivo.isNotEmpty()) {
                             val report = ReportInfo(
                                 id = id,
-                                name = name,
-                                position = position,
-                                supervisor = supervisor,
+                                ejecutivo = ejecutivo,
                                 comments = comments,
                                 filePath = filePath,
                                 createdAt = createdAt
@@ -1033,6 +1038,99 @@ class ConfigActivity : AppCompatActivity() {
             runOnUiThread {
                 Toast.makeText(this, "Archivo guardado en: ${file.absolutePath}", Toast.LENGTH_LONG).show()
             }
+        }
+    }
+    
+    private fun exportLogs() {
+        try {
+            val logger = AppLogger.getInstance(this)
+            val filePath = logger.exportLogsToFile()
+            
+            if (filePath != null) {
+                androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle("Logs Exportados")
+                    .setMessage("El archivo de logs se ha exportado exitosamente.\n\n¿Deseas abrirlo?")
+                    .setPositiveButton("Abrir") { _, _ ->
+                        abrirArchivoLogs(filePath)
+                    }
+                    .setNeutralButton("Compartir") { _, _ ->
+                        compartirLogs(filePath)
+                    }
+                    .setNegativeButton("Cerrar", null)
+                    .show()
+            } else {
+                Toast.makeText(this, "No hay logs para exportar", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            Toast.makeText(this, "Error al exportar logs: ${e.message}", Toast.LENGTH_LONG).show()
+        }
+    }
+    
+    private fun clearLogs() {
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Limpiar Logs")
+            .setMessage("¿Está seguro de que desea eliminar todos los registros de logs?")
+            .setPositiveButton("Eliminar") { _, _ ->
+                val logger = AppLogger.getInstance(this)
+                logger.clearLogs()
+                updateLogsStats()
+                Toast.makeText(this, "Logs eliminados exitosamente", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+    
+    private fun updateLogsStats() {
+        try {
+            val logger = AppLogger.getInstance(this)
+            val totalLogs = logger.getLogsCount()
+            val errorsCount = logger.getErrorsCount()
+            val warningsCount = logger.getWarningsCount()
+            
+            binding.logsStatsText.text = "Registros: $totalLogs | Errores: $errorsCount | Advertencias: $warningsCount"
+        } catch (e: Exception) {
+            binding.logsStatsText.text = "Registros: Error al cargar estadísticas"
+        }
+    }
+    
+    private fun abrirArchivoLogs(filePath: String) {
+        try {
+            val file = File(filePath)
+            val uri = FileProvider.getUriForFile(
+                this,
+                "${packageName}.fileprovider",
+                file
+            )
+            
+            val intent = Intent(Intent.ACTION_VIEW)
+            intent.setDataAndType(uri, "text/plain")
+            intent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+            
+            startActivity(intent)
+        } catch (e: Exception) {
+            Toast.makeText(this, "No se pudo abrir el archivo de logs", Toast.LENGTH_LONG).show()
+        }
+    }
+    
+    private fun compartirLogs(filePath: String) {
+        try {
+            val file = File(filePath)
+            val uri = FileProvider.getUriForFile(
+                this,
+                "${packageName}.fileprovider",
+                file
+            )
+            
+            val intent = Intent(Intent.ACTION_SEND)
+            intent.type = "text/plain"
+            intent.putExtra(Intent.EXTRA_STREAM, uri)
+            intent.putExtra(Intent.EXTRA_SUBJECT, "Logs de Gestión de Clientes")
+            intent.putExtra(Intent.EXTRA_TEXT, "Adjunto el archivo de logs de la aplicación.")
+            intent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+            
+            startActivity(Intent.createChooser(intent, "Compartir Logs mediante..."))
+        } catch (e: Exception) {
+            Toast.makeText(this, "Error al compartir logs: ${e.message}", Toast.LENGTH_LONG).show()
         }
     }
 }

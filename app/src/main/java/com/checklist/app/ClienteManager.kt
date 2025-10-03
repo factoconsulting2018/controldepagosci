@@ -69,11 +69,17 @@ data class ImportResult(
 class ClienteManager(private val context: Context) {
     private val prefs: SharedPreferences = context.getSharedPreferences("cliente_prefs", Context.MODE_PRIVATE)
     private val gson = Gson()
+    @Volatile private var cachedClientes: List<Cliente>? = null
+    @Volatile private var cachedClientesById: Map<Long, Cliente>? = null
     
     fun getAllClientes(): List<Cliente> {
+        cachedClientes?.let { return it }
         val json = prefs.getString("clientes", "[]")
         val type = object : TypeToken<List<Cliente>>() {}.type
-        return gson.fromJson(json, type) ?: emptyList()
+        val parsed = gson.fromJson<List<Cliente>>(json, type) ?: emptyList()
+        cachedClientes = parsed
+        cachedClientesById = parsed.associateBy { it.id }
+        return parsed
     }
     
     fun addCliente(cliente: Cliente): Long {
@@ -101,7 +107,18 @@ class ClienteManager(private val context: Context) {
     }
     
     fun getClienteById(id: Long): Cliente? {
-        return getAllClientes().find { it.id == id }
+        val localCache = cachedClientesById
+        if (localCache != null) {
+            val cliente = localCache[id]
+            android.util.Log.d("ClienteManager", "getClienteById: ID=$id, encontrado en cache=$cliente")
+            return cliente
+        }
+        // fallback: inicializar caché
+        android.util.Log.d("ClienteManager", "getClienteById: Cache vacío, inicializando...")
+        val list = getAllClientes()
+        val cliente = cachedClientesById?.get(id) ?: list.find { it.id == id }
+        android.util.Log.d("ClienteManager", "getClienteById: ID=$id, encontrado después de inicializar=$cliente")
+        return cliente
     }
     
     fun searchClientes(query: String): List<Cliente> {
@@ -204,6 +221,7 @@ class ClienteManager(private val context: Context) {
     }
     
     fun precargarClientes(): Boolean {
+        val t0 = System.currentTimeMillis()
         android.util.Log.d("ClienteManager", "precargarClientes: Iniciando carga automática")
         
         // Verificar si ya hay clientes cargados para evitar recargas innecesarias
@@ -226,7 +244,7 @@ class ClienteManager(private val context: Context) {
         android.util.Log.d("ClienteManager", "precargarClientes: JSON existe: ${jsonFile.exists()}")
         android.util.Log.d("ClienteManager", "precargarClientes: Excel existe: ${excelFile.exists()}")
         
-        return when {
+        val result = when {
             jsonFile.exists() -> {
                 android.util.Log.d("ClienteManager", "precargarClientes: Cargando desde JSON")
                 val success = loadClientesFromJson(jsonPath)
@@ -244,6 +262,8 @@ class ClienteManager(private val context: Context) {
                 false
             }
         }
+        android.util.Log.d("Perf", "ClienteManager.precargarClientes: ${System.currentTimeMillis() - t0}ms")
+        return result
     }
     
     private fun createClienteFromRow(row: Row): Cliente? {
@@ -337,6 +357,9 @@ class ClienteManager(private val context: Context) {
     private fun saveClientes(clientes: List<Cliente>) {
         val json = gson.toJson(clientes)
         prefs.edit().putString("clientes", json).apply()
+        // invalidar y actualizar cachés
+        cachedClientes = clientes
+        cachedClientesById = clientes.associateBy { it.id }
     }
     
     data class SmartImportResult(
