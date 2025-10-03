@@ -4,6 +4,8 @@ import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.content.Intent
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.*
@@ -11,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.card.MaterialCardView
+import com.google.android.material.chip.Chip
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 import com.google.android.material.textfield.TextInputEditText
 import java.text.SimpleDateFormat
@@ -95,7 +98,11 @@ class SoporteActivity : AppCompatActivity() {
     private fun showCrearIssueDialog() {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_crear_issue, null)
         
-        val clienteAutoComplete = dialogView.findViewById<AutoCompleteTextView>(R.id.clienteAutoComplete)
+        val clienteSearchEditText = dialogView.findViewById<TextInputEditText>(R.id.clienteSearchEditText)
+        val filterNombreChip = dialogView.findViewById<Chip>(R.id.filterNombreChip)
+        val filterCedulaChip = dialogView.findViewById<Chip>(R.id.filterCedulaChip)
+        val filterTelefonoChip = dialogView.findViewById<Chip>(R.id.filterTelefonoChip)
+        val clientesRecyclerView = dialogView.findViewById<RecyclerView>(R.id.clientesRecyclerView)
         val clienteInfoCard = dialogView.findViewById<MaterialCardView>(R.id.clienteInfoCard)
         val clienteInfoNombre = dialogView.findViewById<TextView>(R.id.clienteInfoNombre)
         val clienteInfoCedula = dialogView.findViewById<TextView>(R.id.clienteInfoCedula)
@@ -106,16 +113,72 @@ class SoporteActivity : AppCompatActivity() {
         var clienteSeleccionado: Cliente? = null
         val issuesList = mutableListOf<IssueItemView>()
         
-        val clientes = clienteManager.getAllClientes()
-        val clientesNombres = clientes.map { "${it.nombre} - ${it.cedula}" }
-        val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, clientesNombres)
-        clienteAutoComplete.setAdapter(adapter)
-        
-        clienteAutoComplete.setOnItemClickListener { _, _, position, _ ->
-            clienteSeleccionado = clientes[position]
+        // Configurar RecyclerView de clientes
+        val clienteAdapter = ClienteBusquedaAdapter { cliente ->
+            clienteSeleccionado = cliente
             clienteInfoCard.visibility = View.VISIBLE
-            clienteInfoNombre.text = "Nombre: ${clienteSeleccionado?.nombre}"
-            clienteInfoCedula.text = "Cédula: ${clienteSeleccionado?.cedula}"
+            clienteInfoNombre.text = "Nombre: ${cliente.nombre}"
+            clienteInfoCedula.text = "Cédula: ${cliente.cedula}"
+            clientesRecyclerView.visibility = View.GONE
+            clienteSearchEditText.setText("${cliente.nombre} - ${cliente.cedula}")
+        }
+        
+        clientesRecyclerView.apply {
+            layoutManager = LinearLayoutManager(this@SoporteActivity)
+            adapter = clienteAdapter
+        }
+        
+        // Función para filtrar clientes
+        fun filtrarClientes(query: String) {
+            if (query.isEmpty()) {
+                clientesRecyclerView.visibility = View.GONE
+                return
+            }
+            
+            val clientes = clienteManager.getAllClientes()
+            val clientesFiltrados = clientes.filter { cliente ->
+                var matches = false
+                
+                if (filterNombreChip.isChecked && cliente.nombre.contains(query, ignoreCase = true)) {
+                    matches = true
+                }
+                if (filterCedulaChip.isChecked && cliente.cedula.contains(query, ignoreCase = true)) {
+                    matches = true
+                }
+                if (filterTelefonoChip.isChecked && cliente.telefono.contains(query, ignoreCase = true)) {
+                    matches = true
+                }
+                
+                matches
+            }
+            
+            clienteAdapter.updateClientes(clientesFiltrados)
+            clientesRecyclerView.visibility = if (clientesFiltrados.isNotEmpty()) View.VISIBLE else View.GONE
+        }
+        
+        // Configurar búsqueda en tiempo real
+        clienteSearchEditText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                filtrarClientes(s.toString())
+            }
+            override fun afterTextChanged(s: Editable?) {}
+        })
+        
+        // Configurar filtros
+        val filterChips = listOf(filterNombreChip, filterCedulaChip, filterTelefonoChip)
+        filterChips.forEach { chip ->
+            chip.setOnCheckedChangeListener { _, _ ->
+                filtrarClientes(clienteSearchEditText.text.toString())
+            }
+        }
+        
+        // Limpiar selección cuando se edita el texto
+        clienteSearchEditText.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus && clienteSeleccionado != null) {
+                clienteSeleccionado = null
+                clienteInfoCard.visibility = View.GONE
+            }
         }
         
         btnAgregarIssue.setOnClickListener {

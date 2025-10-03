@@ -21,6 +21,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/promesasRecyclerView"
         android:layout_width="match_parent"

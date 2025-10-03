@@ -1,9 +1,12 @@
 package com.checklist.app
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
@@ -15,6 +18,7 @@ class PromesasAdapter(
     private val onVerDetalleClick: (Promesa) -> Unit,
     private val onEditarClick: (Promesa) -> Unit,
     private val onEliminarClick: (Promesa) -> Unit,
+    private val onImageClick: (Bitmap) -> Unit,
     private val isAdminMode: () -> Boolean
 ) : RecyclerView.Adapter<PromesasAdapter.PromesaViewHolder>() {
     
@@ -55,13 +59,32 @@ class PromesasAdapter(
             promesasPagoLayout.removeAllViews()
             
             promesa.promesasPago.forEachIndexed { index, promesaPago ->
-                val promesaText = TextView(itemView.context).apply {
-                    text = "${index + 1}. ${promesaPago.titulo} - ${numberFormat.format(promesaPago.monto)} - ${sdf.format(Date(promesaPago.fecha))}"
-                    textSize = 12f
-                    setPadding(0, 4, 0, 4)
-                    setTextColor(itemView.context.getColor(R.color.black))
+                val promesaView = LayoutInflater.from(itemView.context).inflate(R.layout.item_promesa_pago_card, promesasPagoLayout, false)
+                
+                val tituloText = promesaView.findViewById<TextView>(R.id.tituloText)
+                val montoText = promesaView.findViewById<TextView>(R.id.montoText)
+                val fechaText = promesaView.findViewById<TextView>(R.id.fechaText)
+                val imagePreview = promesaView.findViewById<ImageView>(R.id.imagePreview)
+                
+                tituloText.text = "${index + 1}. ${promesaPago.titulo}"
+                montoText.text = numberFormat.format(promesaPago.monto)
+                fechaText.text = sdf.format(Date(promesaPago.fecha))
+                
+                // Mostrar imagen si existe
+                promesaPago.imageData?.let { imageData ->
+                    val bitmap = BitmapFactory.decodeByteArray(imageData, 0, imageData.size)
+                    imagePreview.setImageBitmap(bitmap)
+                    imagePreview.visibility = View.VISIBLE
+                    
+                    // Hacer clic para ver imagen en grande
+                    imagePreview.setOnClickListener {
+                        onImageClick(bitmap)
+                    }
+                } ?: run {
+                    imagePreview.visibility = View.GONE
                 }
-                promesasPagoLayout.addView(promesaText)
+                
+                promesasPagoLayout.addView(promesaView)
             }
             
             totalClienteText.text = "Total: ${numberFormat.format(promesa.getTotalMonto())}"

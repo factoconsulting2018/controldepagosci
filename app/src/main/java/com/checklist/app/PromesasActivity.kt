@@ -3,7 +3,13 @@ package com.checklist.app
 import android.app.AlertDialog
 import android.app.DatePickerDialog
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.*
@@ -11,8 +17,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.card.MaterialCardView
+import com.google.android.material.chip.Chip
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
 import com.google.android.material.textfield.TextInputEditText
+import java.io.ByteArrayOutputStream
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.*
@@ -26,6 +34,9 @@ class PromesasActivity : AppCompatActivity() {
     private lateinit var fabNuevaPromesa: ExtendedFloatingActionButton
     private lateinit var fabGenerarReporte: ExtendedFloatingActionButton
     private var isAdminMode = false
+    private var isImageUploadEnabled = false
+    private var currentPromesaView: PromesaPagoView? = null
+    private val PICK_IMAGE_REQUEST = 1001
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,6 +58,9 @@ class PromesasActivity : AppCompatActivity() {
         fabNuevaPromesa = findViewById(R.id.fabNuevaPromesa)
         fabGenerarReporte = findViewById(R.id.fabGenerarReporte)
         
+        // Cargar configuración de subida de imágenes desde ConfigActivity
+        loadImageUploadSetting()
+        
         fabNuevaPromesa.setOnClickListener {
             showCrearPromesaDialog()
         }
@@ -64,16 +78,36 @@ class PromesasActivity : AppCompatActivity() {
         }
     }
     
+    private fun loadImageUploadSetting() {
+        // Cargar configuración desde las preferencias de ConfigActivity
+        val prefs = getSharedPreferences("checklist_prefs", MODE_PRIVATE)
+        isImageUploadEnabled = prefs.getBoolean("image_upload_enabled", false)
+        
+        android.util.Log.d("PromesasActivity", "Image upload setting loaded: $isImageUploadEnabled")
+    }
+    
     private fun setupRecyclerView() {
         promesasAdapter = PromesasAdapter(
             onVerDetalleClick = { promesa -> mostrarDetallePromesa(promesa) },
             onEditarClick = { promesa -> editarPromesa(promesa) },
             onEliminarClick = { promesa -> eliminarPromesa(promesa) },
+            onImageClick = { bitmap -> showImageDialog(bitmap) },
             isAdminMode = { isAdminMode }
         )
         promesasRecyclerView.apply {
             layoutManager = LinearLayoutManager(this@PromesasActivity)
             adapter = promesasAdapter
+        }
+    }
+    
+    fun isImageUploadEnabled(): Boolean {
+        return isImageUploadEnabled
+    }
+    
+    companion object {
+        fun isImageUploadEnabled(context: android.content.Context): Boolean {
+            val prefs = context.getSharedPreferences("checklist_prefs", android.content.Context.MODE_PRIVATE)
+            return prefs.getBoolean("image_upload_enabled", false)
         }
     }
     
@@ -85,32 +119,88 @@ class PromesasActivity : AppCompatActivity() {
     private fun showCrearPromesaDialog() {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_crear_promesa, null)
         
-        val clienteAutoComplete = dialogView.findViewById<AutoCompleteTextView>(R.id.clienteAutoComplete)
+        val clienteSearchEditText = dialogView.findViewById<TextInputEditText>(R.id.clienteSearchEditText)
+        val filterNombreChip = dialogView.findViewById<Chip>(R.id.filterNombreChip)
+        val filterCedulaChip = dialogView.findViewById<Chip>(R.id.filterCedulaChip)
+        val filterTelefonoChip = dialogView.findViewById<Chip>(R.id.filterTelefonoChip)
+        val clientesRecyclerView = dialogView.findViewById<RecyclerView>(R.id.clientesRecyclerView)
         val clienteInfoCard = dialogView.findViewById<MaterialCardView>(R.id.clienteInfoCard)
         val clienteInfoNombre = dialogView.findViewById<TextView>(R.id.clienteInfoNombre)
         val clienteInfoCedula = dialogView.findViewById<TextView>(R.id.clienteInfoCedula)
         val promesasContainer = dialogView.findViewById<LinearLayout>(R.id.promesasContainer)
         val btnAgregarPromesa = dialogView.findViewById<Button>(R.id.btnAgregarPromesa)
         val totalText = dialogView.findViewById<TextView>(R.id.totalText)
+        val btnGuardarPromesa = dialogView.findViewById<Button>(R.id.btnGuardarPromesa)
         
         var clienteSeleccionado: Cliente? = null
         val promesasPagoList = mutableListOf<PromesaPagoView>()
         
-        val clientes = clienteManager.getAllClientes()
-        val clientesNombres = clientes.map { "${it.nombre} - ${it.cedula}" }
-        val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, clientesNombres)
-        clienteAutoComplete.setAdapter(adapter)
-        
-        clienteAutoComplete.setOnItemClickListener { _, _, position, _ ->
-            clienteSeleccionado = clientes[position]
+        // Configurar RecyclerView de clientes
+        val clienteAdapter = ClienteBusquedaAdapter { cliente ->
+            clienteSeleccionado = cliente
             clienteInfoCard.visibility = View.VISIBLE
-            clienteInfoNombre.text = "Nombre: ${clienteSeleccionado?.nombre}"
-            clienteInfoCedula.text = "Cédula: ${clienteSeleccionado?.cedula}"
+            clienteInfoNombre.text = "Nombre: ${cliente.nombre}"
+            clienteInfoCedula.text = "Cédula: ${cliente.cedula}"
+            clientesRecyclerView.visibility = View.GONE
+            clienteSearchEditText.setText("${cliente.nombre} - ${cliente.cedula}")
         }
         
-        btnAgregarPromesa.setOnClickListener {
-            val promesaView = addPromesaPagoView(promesasContainer, promesasPagoList.size + 1, promesasPagoList, totalText)
-            promesasPagoList.add(promesaView)
+        clientesRecyclerView.apply {
+            layoutManager = LinearLayoutManager(this@PromesasActivity)
+            adapter = clienteAdapter
+        }
+        
+        // Función para filtrar clientes
+        fun filtrarClientes(query: String) {
+            if (query.isEmpty()) {
+                clientesRecyclerView.visibility = View.GONE
+                return
+            }
+            
+            val clientes = clienteManager.getAllClientes()
+            val clientesFiltrados = clientes.filter { cliente ->
+                var matches = false
+                
+                if (filterNombreChip.isChecked && cliente.nombre.contains(query, ignoreCase = true)) {
+                    matches = true
+                }
+                if (filterCedulaChip.isChecked && cliente.cedula.contains(query, ignoreCase = true)) {
+                    matches = true
+                }
+                if (filterTelefonoChip.isChecked && cliente.telefono.contains(query, ignoreCase = true)) {
+                    matches = true
+                }
+                
+                matches
+            }
+            
+            clienteAdapter.updateClientes(clientesFiltrados)
+            clientesRecyclerView.visibility = if (clientesFiltrados.isNotEmpty()) View.VISIBLE else View.GONE
+        }
+        
+        // Configurar búsqueda en tiempo real
+        clienteSearchEditText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                filtrarClientes(s.toString())
+            }
+            override fun afterTextChanged(s: Editable?) {}
+        })
+        
+        // Configurar filtros
+        val filterChips = listOf(filterNombreChip, filterCedulaChip, filterTelefonoChip)
+        filterChips.forEach { chip ->
+            chip.setOnCheckedChangeListener { _, _ ->
+                filtrarClientes(clienteSearchEditText.text.toString())
+            }
+        }
+        
+        // Limpiar selección cuando se edita el texto
+        clienteSearchEditText.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus && clienteSeleccionado != null) {
+                clienteSeleccionado = null
+                clienteInfoCard.visibility = View.GONE
+            }
         }
         
         // Agregar al menos una promesa por defecto
@@ -119,11 +209,23 @@ class PromesasActivity : AppCompatActivity() {
         
         val dialog = AlertDialog.Builder(this)
             .setView(dialogView)
-            .setPositiveButton("Crear Promesa") { _, _ ->
-                crearPromesa(clienteSeleccionado, promesasPagoList)
-            }
             .setNegativeButton("Cancelar", null)
             .create()
+        
+        btnAgregarPromesa.setOnClickListener {
+            val promesaView = addPromesaPagoView(promesasContainer, promesasPagoList.size + 1, promesasPagoList, totalText)
+            promesasPagoList.add(promesaView)
+        }
+        
+        btnGuardarPromesa.setOnClickListener {
+            crearPromesa(clienteSeleccionado, promesasPagoList)
+            dialog.dismiss()
+        }
+        
+        // Mostrar información sobre subida de imágenes si está habilitada
+        if (isImageUploadEnabled) {
+            dialog.setMessage("La subida de imágenes está activada. Podrás agregar imágenes a las promesas de pago.")
+        }
         
         dialog.show()
     }
@@ -133,8 +235,11 @@ class PromesasActivity : AppCompatActivity() {
         val tituloEditText: TextInputEditText,
         val montoEditText: TextInputEditText,
         val fechaEditText: TextInputEditText,
-        var fechaMillis: Long = 0
-    )
+        val imagePreview: ImageView
+    ) {
+        var fechaMillis: Long = 0L
+        var imageBitmap: Bitmap? = null
+    }
     
     private fun addPromesaPagoView(
         container: LinearLayout, 
@@ -148,8 +253,22 @@ class PromesasActivity : AppCompatActivity() {
         val montoEditText = itemView.findViewById<TextInputEditText>(R.id.montoEditText)
         val fechaEditText = itemView.findViewById<TextInputEditText>(R.id.fechaEditText)
         val btnEliminar = itemView.findViewById<ImageButton>(R.id.btnEliminarPromesaItem)
+        val imageUploadLayout = itemView.findViewById<LinearLayout>(R.id.imageUploadLayout)
+        val btnSelectImage = itemView.findViewById<Button>(R.id.btnSelectImage)
+        val imagePreview = itemView.findViewById<ImageView>(R.id.imagePreview)
         
-        val promesaView = PromesaPagoView(itemView, tituloEditText, montoEditText, fechaEditText)
+        val promesaView = PromesaPagoView(itemView, tituloEditText, montoEditText, fechaEditText, imagePreview)
+        
+        // Mostrar/ocultar opciones de imagen según configuración
+        if (isImageUploadEnabled) {
+            imageUploadLayout.visibility = View.VISIBLE
+            btnSelectImage.setOnClickListener {
+                currentPromesaView = promesaView
+                selectImage()
+            }
+        } else {
+            imageUploadLayout.visibility = View.GONE
+        }
         
         fechaEditText.setOnClickListener {
             showDatePicker(fechaEditText, promesaView)
@@ -192,6 +311,35 @@ class PromesasActivity : AppCompatActivity() {
         datePickerDialog.show()
     }
     
+    private fun selectImage() {
+        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        startActivityForResult(intent, PICK_IMAGE_REQUEST)
+    }
+    
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
+            val selectedImageUri: Uri? = data.data
+            selectedImageUri?.let { uri ->
+                try {
+                    val inputStream = contentResolver.openInputStream(uri)
+                    val bitmap = BitmapFactory.decodeStream(inputStream)
+                    inputStream?.close()
+                    
+                    currentPromesaView?.let { promesaView ->
+                        promesaView.imageBitmap = bitmap
+                        promesaView.imagePreview.setImageBitmap(bitmap)
+                        promesaView.imagePreview.visibility = View.VISIBLE
+                    }
+                } catch (e: Exception) {
+                    android.util.Log.e("PromesasActivity", "Error loading image: ${e.message}")
+                    Toast.makeText(this, "Error al cargar la imagen", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+    
     private fun actualizarTotal(promesasList: List<PromesaPagoView>, totalText: TextView) {
         val total = promesasList.sumOf {
             it.montoEditText.text.toString().toDoubleOrNull() ?: 0.0
@@ -215,9 +363,14 @@ class PromesasActivity : AppCompatActivity() {
             val titulo = promesaView.tituloEditText.text.toString().trim()
             val monto = promesaView.montoEditText.text.toString().toDoubleOrNull() ?: 0.0
             val fecha = promesaView.fechaMillis
+            val imageData = promesaView.imageBitmap?.let { bitmap ->
+                val stream = ByteArrayOutputStream()
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 80, stream)
+                stream.toByteArray()
+            }
             
             if (titulo.isNotEmpty() && monto > 0 && fecha > 0) {
-                PromesaPago(titulo, monto, fecha)
+                PromesaPago(titulo, monto, fecha, imageData)
             } else {
                 null
             }
@@ -235,8 +388,39 @@ class PromesasActivity : AppCompatActivity() {
         )
         
         promesaManager.addPromesa(promesa)
-        Toast.makeText(this, "Promesa creada exitosamente", Toast.LENGTH_SHORT).show()
         loadPromesas()
+        
+        // Mostrar diálogo de confirmación con ícono de check
+        showSuccessDialog()
+    }
+    
+    private fun showSuccessDialog() {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_success, null)
+        
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .setPositiveButton("Aceptar") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .create()
+        
+        dialog.show()
+    }
+    
+    private fun showImageDialog(bitmap: Bitmap) {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_image_viewer, null)
+        val imageView = dialogView.findViewById<ImageView>(R.id.imageView)
+        
+        imageView.setImageBitmap(bitmap)
+        
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .setPositiveButton("Cerrar") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .create()
+        
+        dialog.show()
     }
     
     private fun editarPromesa(promesa: Promesa) {

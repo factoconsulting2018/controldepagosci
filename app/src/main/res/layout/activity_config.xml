@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/white"
     android:paddingTop="50dp"
     tools:context=".ConfigActivity">
 
@@ -108,7 +109,41 @@
                     android:background="@drawable/edittext_background"
                     android:layout_marginBottom="16dp" />
 
-                <!-- Tutorial eliminado -->
+                <!-- Configuración de Subida de Imágenes -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Subida de Imágenes"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="8dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="16dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Permitir subida de imágenes en promesas de pago"
+                        android:textSize="12sp"
+                        android:textColor="@color/green_700" />
+
+                    <Switch
+                        android:id="@+id/imageUploadSwitch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:checked="false"
+                        android:thumbTint="@color/green_500"
+                        android:trackTint="@color/green_200" />
+
+                </LinearLayout>
 
                 <!-- Configuración de Eliminación de Informes -->
                 <TextView

@@ -220,6 +220,10 @@ class ConfigActivity : AppCompatActivity() {
         val allowDeleteReports = prefs.getBoolean("allow_delete_reports", false)
         binding.allowDeleteReportsSwitch.isChecked = allowDeleteReports
         
+        // Cargar configuración de subida de imágenes
+        val imageUploadEnabled = prefs.getBoolean("image_upload_enabled", false)
+        binding.imageUploadSwitch.isChecked = imageUploadEnabled
+        
         // Actualizar estadísticas de logs
         updateLogsStats()
     }
@@ -227,6 +231,7 @@ class ConfigActivity : AppCompatActivity() {
     private fun saveSettings() {
         val newTitle = binding.titleEditText.text.toString().trim()
         val allowDeleteReports = binding.allowDeleteReportsSwitch.isChecked
+        val imageUploadEnabled = binding.imageUploadSwitch.isChecked
         
         if (newTitle.isEmpty()) {
             Toast.makeText(this, "El título no puede estar vacío", Toast.LENGTH_SHORT).show()
@@ -236,6 +241,7 @@ class ConfigActivity : AppCompatActivity() {
         prefs.edit()
             .putString("checklist_title", newTitle)
             .putBoolean("allow_delete_reports", allowDeleteReports)
+            .putBoolean("image_upload_enabled", imageUploadEnabled)
             .apply()
         
         Toast.makeText(this, "Configuración guardada", Toast.LENGTH_SHORT).show()

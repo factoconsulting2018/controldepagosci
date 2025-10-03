@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:gravity="center">
+
+    <!-- Ícono de Check -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="✅"
+        android:textSize="48sp"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Título -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Guardado con éxito"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="@color/green_700"
+        android:gravity="center"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Mensaje -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="La promesa de pago ha sido guardada correctamente"
+        android:textSize="14sp"
+        android:textColor="@color/green_600"
+        android:gravity="center"
+        android:layout_marginBottom="16dp" />
+
+</LinearLayout>
+

@@ -20,23 +20,71 @@
             android:gravity="center"
             android:layout_marginBottom="16dp" />
 
-        <!-- Selector de Cliente -->
+        <!-- Buscador de Cliente con Filtros -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/clienteInputLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
-            android:hint="Cliente"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+            android:hint="Buscar Cliente"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
-            <AutoCompleteTextView
-                android:id="@+id/clienteAutoComplete"
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/clienteSearchEditText"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="none"
-                android:textSize="14sp" />
+                android:inputType="text"
+                android:textSize="14sp"
+                android:drawableEnd="@drawable/ic_search"
+                android:drawablePadding="8dp" />
 
         </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Filtros de Búsqueda -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp"
+            android:gravity="center_vertical">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/filterNombreChip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nombre"
+                android:checked="true"
+                style="@style/Widget.MaterialComponents.Chip.Filter" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/filterCedulaChip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cédula"
+                android:checked="true"
+                android:layout_marginStart="8dp"
+                style="@style/Widget.MaterialComponents.Chip.Filter" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/filterTelefonoChip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Teléfono"
+                android:checked="true"
+                android:layout_marginStart="8dp"
+                style="@style/Widget.MaterialComponents.Chip.Filter" />
+
+        </LinearLayout>
+
+        <!-- Lista de Resultados de Búsqueda -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/clientesRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/placeholder_background"
+            android:padding="4dp"
+            android:visibility="gone" />
 
         <!-- Información del Cliente Seleccionado -->
         <com.google.android.material.card.MaterialCardView

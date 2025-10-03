@@ -13,6 +13,7 @@ import android.os.Bundle
 import android.content.Context.RECEIVER_NOT_EXPORTED
 import android.view.View
 import android.widget.ArrayAdapter
+import android.widget.Button
 import android.widget.EditText
 import android.widget.Spinner
 import android.widget.Toast
@@ -49,6 +50,7 @@ class MainActivity : AppCompatActivity() {
     private var currentEjecutivoFilter: Long? = null // Siempre null - sin filtro por defecto
     private var allQuestions: List<Question> = emptyList()
     private var searchQuery: String = ""
+    private var isAlphabeticalSort = false // false = por ID, true = alfabético
     
     companion object {
         private const val PERMISSION_REQUEST_CODE = 1001
@@ -451,7 +453,7 @@ class MainActivity : AppCompatActivity() {
             val button = android.widget.Button(this).apply {
                 id = View.generateViewId()
                 text = ejecutivo.name
-                textSize = 10f
+                textSize = 6f
                 // Usar el color asignado al ejecutivo
                 try {
                     val color = android.graphics.Color.parseColor(ejecutivo.color)
@@ -468,10 +470,10 @@ class MainActivity : AppCompatActivity() {
                     android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
                     android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
                 ).apply {
-                    setMargins(8, 0, 0, 0)
+                    setMargins(4, 0, 0, 0)
                 }
-                minWidth = 60
-                setPadding(8, 8, 8, 8)
+                minWidth = 24
+                setPadding(2, 2, 2, 2)
 
                 setOnClickListener {
                     filterByEjecutivo(ejecutivo.id)
@@ -503,7 +505,22 @@ class MainActivity : AppCompatActivity() {
         val ejecutivos = ejecutivoManager.getAllEjecutivos()
         val layout = binding.ejecutivoFilterLayout
         
-        // Botón "TODOS" oculto - no se necesita actualizar
+        // Agregar botón "TODOS" al inicio
+        val todosButton = layout.findViewById<Button>(com.checklist.app.R.id.todosButton)
+        if (todosButton == null) {
+            val newTodosButton = Button(this).apply {
+                id = com.checklist.app.R.id.todosButton
+                text = "TODOS"
+                textSize = 12f
+                setPadding(16, 8, 16, 8)
+                setBackgroundResource(com.checklist.app.R.drawable.button_background)
+                setTextColor(if (currentEjecutivoFilter == null) android.graphics.Color.WHITE else android.graphics.Color.parseColor("#4CAF50"))
+                setOnClickListener { filterByEjecutivo(null) }
+            }
+            layout.addView(newTodosButton, 0)
+        } else {
+            todosButton.setTextColor(if (currentEjecutivoFilter == null) android.graphics.Color.WHITE else android.graphics.Color.parseColor("#4CAF50"))
+        }
         
         // Actualizar botones de ejecutivos
         for (i in 1 until layout.childCount) {
@@ -692,13 +709,8 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun loadQuestions() {
-        // Solo cargar si no hay datos o si es la primera vez
-        if (allQuestions.isNotEmpty()) {
-            android.util.Log.d("MainActivity", "loadQuestions: Ya hay datos cargados, omitiendo recarga")
-            // Aún así, actualizar la UI con los datos existentes
-            updateQuestionsUI(allQuestions)
-            return
-        }
+        // Siempre recargar para asegurar que la UI esté actualizada
+        android.util.Log.d("MainActivity", "loadQuestions: Iniciando recarga de datos")
         
         // Mostrar indicador de carga
         runOnUiThread {
@@ -770,70 +782,69 @@ class MainActivity : AppCompatActivity() {
         // Aplicar filtros
         var filteredQuestions = questions
         
-        // Aplicar filtro por ejecutivo si está activo
+        // Aplicar filtro por ejecutivo si está activo (sin logs excesivos)
         if (currentEjecutivoFilter != null) {
-            android.util.Log.d("MainActivity", "updateQuestionsUI: Aplicando filtro por ejecutivo: $currentEjecutivoFilter")
             filteredQuestions = filteredQuestions.filter { question ->
-                val matches = question.ejecutivoId == currentEjecutivoFilter
-                android.util.Log.d("MainActivity", "updateQuestionsUI: Pregunta ${question.title} - Ejecutivo: ${question.ejecutivoId} - Coincide: $matches")
-                matches
+                question.ejecutivoId == currentEjecutivoFilter
             }
-            android.util.Log.d("MainActivity", "updateQuestionsUI: Filtro por ejecutivo aplicado: ${filteredQuestions.size} preguntas")
         }
         
-        // Aplicar filtro de búsqueda si hay texto
+        // Aplicar filtro de búsqueda si hay texto (sin logs excesivos)
         if (searchQuery.isNotEmpty()) {
-            android.util.Log.d("MainActivity", "updateQuestionsUI: Aplicando filtro de búsqueda: '$searchQuery'")
             filteredQuestions = filteredQuestions.filter { question ->
                 val cliente = clienteManager.getClienteById(question.clienteId ?: -1)
-                val matches = if (cliente != null) {
+                if (cliente != null) {
                     cliente.nombre.contains(searchQuery, ignoreCase = true) || 
                     cliente.cedula.contains(searchQuery, ignoreCase = true)
                 } else {
                     question.title.contains(searchQuery, ignoreCase = true) || 
                     question.subtitle.contains(searchQuery, ignoreCase = true)
                 }
-                android.util.Log.d("MainActivity", "updateQuestionsUI: Pregunta ${question.title} - Coincide búsqueda: $matches")
-                matches
             }
-            android.util.Log.d("MainActivity", "updateQuestionsUI: Filtro de búsqueda aplicado: ${filteredQuestions.size} preguntas")
         }
         
         
-        // Ordenar alfabéticamente por ejecutivo y luego por nombre del cliente (A-Z)
-        filteredQuestions = filteredQuestions.sortedWith(compareBy<Question> { question ->
-            // Primero ordenar por ejecutivo
-            val ejecutivo = ejecutivoManager.getEjecutivoById(question.ejecutivoId)
-            ejecutivo?.name ?: "Sin ejecutivo"
-        }.thenBy { question ->
-            // Luego ordenar por nombre del cliente dentro de cada ejecutivo
-            val cliente = clienteManager.getClienteById(question.clienteId ?: -1)
-            if (cliente != null) {
-                cliente.nombre.trim().uppercase()
-            } else {
-                question.title.trim().uppercase()
+        // Aplicar ordenamiento según la configuración actual
+        filteredQuestions = if (isAlphabeticalSort) {
+            // Ordenar alfabéticamente por ejecutivo y luego por nombre del cliente (A-Z)
+            filteredQuestions.sortedWith(compareBy<Question> { question ->
+                // Primero ordenar por ejecutivo
+                val ejecutivo = ejecutivoManager.getEjecutivoById(question.ejecutivoId)
+                ejecutivo?.name ?: "Sin ejecutivo"
+            }.thenBy { question ->
+                // Luego ordenar por nombre del cliente dentro de cada ejecutivo
+                val cliente = clienteManager.getClienteById(question.clienteId ?: -1)
+                if (cliente != null) {
+                    cliente.nombre.trim().uppercase()
+                } else {
+                    question.title.trim().uppercase()
+                }
+            })
+        } else {
+            // Ordenar por ID del cliente (orden numérico)
+            filteredQuestions.sortedBy { question ->
+                question.clienteId ?: 0L
             }
-        })
+        }
         
-        android.util.Log.d("MainActivity", "loadQuestions: Ordenamiento por ejecutivo y alfabético aplicado: ${filteredQuestions.size} preguntas")
+        val sortType = if (isAlphabeticalSort) "alfabético" else "por ID"
+        android.util.Log.d("MainActivity", "loadQuestions: Ordenamiento $sortType aplicado: ${filteredQuestions.size} preguntas")
         
         questionsAdapter.submitList(filteredQuestions)
         
-        // Auto-seleccionar el primer cliente si hay preguntas disponibles
-        if (filteredQuestions.isNotEmpty()) {
-            val firstQuestion = filteredQuestions.first()
-            android.util.Log.d("MainActivity", "Auto-seleccionando primer cliente: ${firstQuestion.title}")
-            // Auto-activar el primer cliente (marcar como completado si está pendiente)
-            if (!firstQuestion.isCompleted) {
-                toggleQuestionCompletion(firstQuestion)
-            }
-        }
+        // Auto-selección del primer cliente deshabilitada
+        // Los clientes inician sin seleccionar (color gris)
+        android.util.Log.d("MainActivity", "loadQuestions: Lista cargada sin auto-selección")
         
         // Mostrar/ocultar título según si hay preguntas
         binding.titleText.visibility = if (filteredQuestions.isNotEmpty()) android.view.View.VISIBLE else android.view.View.GONE
         
         // Actualizar indicador de proceso
         updateProgressIndicator(filteredQuestions)
+        
+        // Actualizar badge del menú de clientes
+        updateClientsMenuBadge()
+        
         val elapsed = System.currentTimeMillis() - t0
         android.util.Log.d("Perf", "updateQuestionsUI: ${elapsed}ms (in=${questions.size}, out=${filteredQuestions.size})")
     }
@@ -854,6 +865,34 @@ class MainActivity : AppCompatActivity() {
         binding.progressText.text = "Progreso: $completedCount/$totalCount ($progressPercentage%)"
     }
     
+    private fun updateClientsMenuBadge() {
+        try {
+            val completedCount = allQuestions.count { it.isCompleted }
+            
+            // Obtener el menú del bottom navigation
+            val menu = binding.navigationBar.menu
+            val clientsItem = menu.findItem(R.id.nav_questions)
+            
+            if (completedCount > 0) {
+                // Crear un badge con el número de clientes marcados
+                val badge = binding.navigationBar.getOrCreateBadge(R.id.nav_questions)
+                badge.number = completedCount
+                badge.backgroundColor = android.graphics.Color.parseColor("#FF5722") // Rojo
+                badge.badgeTextColor = android.graphics.Color.WHITE
+                badge.maxCharacterCount = 3
+                android.util.Log.d("MainActivity", "updateClientsMenuBadge: Badge actualizado con $completedCount clientes marcados")
+            } else {
+                // Remover el badge si no hay clientes marcados
+                binding.navigationBar.removeBadge(R.id.nav_questions)
+                android.util.Log.d("MainActivity", "updateClientsMenuBadge: Badge removido - no hay clientes marcados")
+            }
+            
+        } catch (e: Exception) {
+            android.util.Log.e("MainActivity", "Error actualizando badge del menú de clientes: ${e.message}")
+            e.printStackTrace()
+        }
+    }
+    
     private fun toggleQuestionCompletion(question: Question) {
         android.util.Log.d("MainActivity", "toggleQuestionCompletion: INICIANDO - ID: ${question.id}, Estado actual: ${question.isCompleted}")
         
@@ -869,27 +908,32 @@ class MainActivity : AppCompatActivity() {
         questionManager.updateQuestion(updatedQuestion)
         android.util.Log.d("MainActivity", "toggleQuestionCompletion: Estado actualizado en tabla de estados: $nuevoEstado")
         
+        // Encontrar el índice del elemento en la lista actual
+        val currentIndex = allQuestions.indexOfFirst { it.id == question.id }
+        android.util.Log.d("MainActivity", "toggleQuestionCompletion: Índice del elemento: $currentIndex")
+        
         // Actualizar la lista local allQuestions
         val updatedQuestions = allQuestions.map { 
             if (it.id == question.id) updatedQuestion else it 
         }
         allQuestions = updatedQuestions
         
-        // Forzar actualización completa del adapter
-        android.util.Log.d("MainActivity", "toggleQuestionCompletion: Forzando actualización completa del adapter")
+        // Actualizar la lista completa para asegurar que la UI se actualice
+        android.util.Log.d("MainActivity", "toggleQuestionCompletion: Actualizando lista completa con ${updatedQuestions.size} elementos")
         questionsAdapter.submitList(updatedQuestions.toList())
+        
+        // Log para verificar el estado actualizado
+        val updatedQuestionInList = updatedQuestions.find { it.id == question.id }
+        android.util.Log.d("MainActivity", "toggleQuestionCompletion: Estado verificado - ID: ${updatedQuestionInList?.id}, isCompleted: ${updatedQuestionInList?.isCompleted}")
         
         // Actualizar indicador de progreso
         updateProgressIndicator(updatedQuestions)
         
-        // Determinar el mensaje correcto según el estado final
+        // Actualizar badge del menú de clientes
+        updateClientsMenuBadge()
+        
+        // Log del estado final (sin mostrar Toast)
         val status = if (updatedQuestion.isCompleted) "Pagado" else "Pendiente"
-        val mensaje = if (updatedQuestion.isCompleted) {
-            "Cliente se ha marcado como pagado"
-        } else {
-            "Cliente se ha marcado como pendiente"
-        }
-        Toast.makeText(this, mensaje, Toast.LENGTH_SHORT).show()
         android.util.Log.d("MainActivity", "toggleQuestionCompletion: COMPLETADO - Estado final: $status")
     }
     
@@ -1156,6 +1200,9 @@ class MainActivity : AppCompatActivity() {
             // Actualizar allQuestions con los datos frescos
             allQuestions = currentQuestions
             
+            // Forzar actualización de la UI para reflejar los cambios más recientes
+            updateQuestionsUI(currentQuestions)
+            
             val updatedEjecutivos = ejecutivoManager.getAllEjecutivos()
             
             // Obtener estados desde la nueva tabla de estados
@@ -1177,7 +1224,9 @@ class MainActivity : AppCompatActivity() {
             currentQuestions.forEach { question ->
                 val clienteId = question.clienteId ?: 0L
                 val estado = clienteEstadoManager.getEstadoString(clienteId)
-                android.util.Log.d("MainActivity", "generateReportWithInfo: Pregunta ${question.title} - isCompleted: ${question.isCompleted}, Estado tabla: $estado")
+                val isPagado = clienteEstadoManager.isClientePagado(clienteId)
+                val isPendiente = clienteEstadoManager.isClientePendiente(clienteId)
+                android.util.Log.d("MainActivity", "generateReportWithInfo: Pregunta ${question.title} - isCompleted: ${question.isCompleted}, Estado tabla: $estado, isPagado: $isPagado, isPendiente: $isPendiente")
             }
             
             // Generar PDF con información del formulario
@@ -1292,10 +1341,19 @@ class MainActivity : AppCompatActivity() {
                 registerReceiver(configChangeReceiver, filter)
             }
             
-            // Recargar siempre para reflejar nuevos clientes/preguntas creados en otras pantallas
-            loadQuestions()
+            // Solo recargar si es necesario (optimización de rendimiento)
+            if (shouldRefreshData()) {
+                lifecycleScope.launch {
+                    try {
+                        // Operaciones costosas en background
+                        correctInitialClientStatesOptimized()
+                        loadQuestionsOptimized()
+                    } catch (e: Exception) {
+                        android.util.Log.e("MainActivity", "Error en onResume background tasks", e)
+                    }
+                }
+            }
             
-            // Tutorial desactivado permanentemente
         } catch (e: Exception) {
             android.util.Log.e("MainActivity", "Error en onResume", e)
             Toast.makeText(this, "Error al reanudar la aplicación: ${e.message}", Toast.LENGTH_SHORT).show()
@@ -1548,18 +1606,10 @@ class MainActivity : AppCompatActivity() {
         // Las opciones de admin ahora están en el menú "Más"
         // Tutorial eliminado: no hacer nada adicional
         
-        // Mostrar/ocultar buscador según modo administrador
+        // Buscador siempre visible - no depende del modo admin
         val searchLayout = binding.searchLayout
-        if (isAdminMode) {
-            searchLayout.visibility = android.view.View.VISIBLE
-            android.util.Log.d("MainActivity", "updateAdminButtonText: Buscador visible en modo admin")
-        } else {
-            searchLayout.visibility = android.view.View.GONE
-            // Limpiar búsqueda al salir del modo admin
-            searchQuery = ""
-            binding.searchEditText.setText("")
-            android.util.Log.d("MainActivity", "updateAdminButtonText: Buscador oculto, búsqueda limpiada")
-        }
+        searchLayout.visibility = android.view.View.VISIBLE
+        android.util.Log.d("MainActivity", "updateAdminButtonText: Buscador siempre visible")
     }
     
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -1598,8 +1648,10 @@ class MainActivity : AppCompatActivity() {
     
     private fun setupFloatingActionButton() {
         val fabMain = findViewById<com.google.android.material.floatingactionbutton.FloatingActionButton>(R.id.fabMain)
-        val fabLimpiar = findViewById<com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton>(R.id.fabLimpiar)
-        val fabAgregarCliente = findViewById<com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton>(R.id.fabAgregarCliente)
+        val fabLimpiar = findViewById<com.google.android.material.floatingactionbutton.FloatingActionButton>(R.id.fabLimpiar)
+        val fabOrdenar = findViewById<com.google.android.material.floatingactionbutton.FloatingActionButton>(R.id.fabOrdenar)
+        val fabAgregarCliente = findViewById<com.google.android.material.floatingactionbutton.FloatingActionButton>(R.id.fabAgregarCliente)
+        val fabScrollToTop = findViewById<com.google.android.material.floatingactionbutton.FloatingActionButton>(R.id.fabScrollToTop)
         
         var isMenuOpen = false
         
@@ -1609,11 +1661,13 @@ class MainActivity : AppCompatActivity() {
             if (isMenuOpen) {
                 // Mostrar menú
                 fabLimpiar.visibility = android.view.View.VISIBLE
+                fabOrdenar.visibility = android.view.View.VISIBLE
                 fabAgregarCliente.visibility = android.view.View.VISIBLE
                 fabMain.setImageResource(com.checklist.app.R.drawable.ic_back)
             } else {
                 // Ocultar menú
                 fabLimpiar.visibility = android.view.View.GONE
+                fabOrdenar.visibility = android.view.View.GONE
                 fabAgregarCliente.visibility = android.view.View.GONE
                 fabMain.setImageResource(com.checklist.app.R.drawable.ic_add)
             }
@@ -1621,11 +1675,23 @@ class MainActivity : AppCompatActivity() {
         
         // Botón Limpiar
         fabLimpiar.setOnClickListener {
-            clearAllClientSelections()
+            clearFormAndFilters()
             // Cerrar menú después de la acción
             isMenuOpen = false
             fabLimpiar.visibility = android.view.View.GONE
             fabAgregarCliente.visibility = android.view.View.GONE
+            fabOrdenar.visibility = android.view.View.GONE
+            fabMain.setImageResource(com.checklist.app.R.drawable.ic_add)
+        }
+        
+        // Botón Ordenar A-Z
+        fabOrdenar.setOnClickListener {
+            toggleAlphabeticalSort()
+            // Cerrar menú después de la acción
+            isMenuOpen = false
+            fabLimpiar.visibility = android.view.View.GONE
+            fabAgregarCliente.visibility = android.view.View.GONE
+            fabOrdenar.visibility = android.view.View.GONE
             fabMain.setImageResource(com.checklist.app.R.drawable.ic_add)
         }
         
@@ -1636,7 +1702,87 @@ class MainActivity : AppCompatActivity() {
             isMenuOpen = false
             fabLimpiar.visibility = android.view.View.GONE
             fabAgregarCliente.visibility = android.view.View.GONE
+            fabOrdenar.visibility = android.view.View.GONE
             fabMain.setImageResource(com.checklist.app.R.drawable.ic_add)
+        }
+        
+        // Botón Ir al Inicio
+        fabScrollToTop.setOnClickListener {
+            scrollToTop()
+        }
+    }
+    
+    private fun scrollToTop() {
+        try {
+            android.util.Log.d("MainActivity", "scrollToTop: Desplazando al primer cliente de la lista")
+            
+            // Verificar que el RecyclerView esté inicializado y tenga elementos
+            if (::questionsAdapter.isInitialized && questionsAdapter.itemCount > 0) {
+                // Hacer scroll suave al primer elemento (posición 0)
+                binding.questionsRecyclerView.smoothScrollToPosition(0)
+                android.util.Log.d("MainActivity", "scrollToTop: Scroll completado al primer elemento")
+            } else {
+                android.util.Log.d("MainActivity", "scrollToTop: No hay elementos para hacer scroll")
+                Toast.makeText(this, "No hay clientes en la lista", Toast.LENGTH_SHORT).show()
+            }
+            
+        } catch (e: Exception) {
+            android.util.Log.e("MainActivity", "Error al hacer scroll al inicio: ${e.message}")
+            Toast.makeText(this, "Error al desplazarse al inicio", Toast.LENGTH_SHORT).show()
+            e.printStackTrace()
+        }
+    }
+    
+    private fun clearFormAndFilters() {
+        try {
+            android.util.Log.d("MainActivity", "clearFormAndFilters: Iniciando limpieza completa")
+            
+            // 1. Limpiar búsqueda
+            searchQuery = ""
+            binding.searchEditText.setText("")
+            android.util.Log.d("MainActivity", "clearFormAndFilters: Búsqueda limpiada")
+            
+            // 2. Limpiar filtro de ejecutivo (seleccionar TODOS)
+            currentEjecutivoFilter = null
+            updateEjecutivoButtonStates()
+            android.util.Log.d("MainActivity", "clearFormAndFilters: Filtro de ejecutivo limpiado (TODOS)")
+            
+            // 3. Desmarcar todos los clientes (volver a color gris)
+            clearAllClientSelections()
+            android.util.Log.d("MainActivity", "clearFormAndFilters: Selecciones de clientes limpiadas")
+            
+            // 4. Recargar la lista completa para mostrar todos los cambios
+            loadQuestions()
+            android.util.Log.d("MainActivity", "clearFormAndFilters: Lista recargada")
+            
+            // 5. Mostrar mensaje de confirmación
+            Toast.makeText(this, "Filtros, búsqueda y selecciones limpiados", Toast.LENGTH_SHORT).show()
+            
+        } catch (e: Exception) {
+            android.util.Log.e("MainActivity", "Error al limpiar filtros: ${e.message}")
+            Toast.makeText(this, "Error al limpiar filtros: ${e.message}", Toast.LENGTH_LONG).show()
+            e.printStackTrace()
+        }
+    }
+    
+    private fun toggleAlphabeticalSort() {
+        try {
+            // Alternar entre ordenamiento por ID y alfabético
+            isAlphabeticalSort = !isAlphabeticalSort
+            
+            val sortType = if (isAlphabeticalSort) "alfabético (A-Z)" else "por ID"
+            android.util.Log.d("MainActivity", "toggleAlphabeticalSort: Cambiando a ordenamiento $sortType")
+            
+            // Actualizar la UI con el nuevo ordenamiento
+            loadQuestions()
+            
+            // Mostrar mensaje de confirmación
+            Toast.makeText(this, "Ordenado por $sortType", Toast.LENGTH_SHORT).show()
+            
+        } catch (e: Exception) {
+            android.util.Log.e("MainActivity", "Error al cambiar ordenamiento: ${e.message}")
+            Toast.makeText(this, "Error al cambiar ordenamiento: ${e.message}", Toast.LENGTH_LONG).show()
+            e.printStackTrace()
         }
     }
     
@@ -1653,17 +1799,13 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             
-            // Recargar la lista para mostrar los cambios
-            loadQuestions()
+            android.util.Log.d("MainActivity", "clearAllClientSelections: Se desmarcaron $clearedCount clientes")
             
-            if (clearedCount > 0) {
-                Toast.makeText(this, "Se limpiaron $clearedCount clientes", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(this, "No hay clientes marcados para limpiar", Toast.LENGTH_SHORT).show()
-            }
+            // Actualizar badge del menú después de limpiar selecciones
+            updateClientsMenuBadge()
             
         } catch (e: Exception) {
-            Toast.makeText(this, "Error al limpiar selecciones: ${e.message}", Toast.LENGTH_LONG).show()
+            android.util.Log.e("MainActivity", "Error al limpiar selecciones: ${e.message}")
             e.printStackTrace()
         }
     }
@@ -1682,9 +1824,9 @@ class MainActivity : AppCompatActivity() {
             val questions = questionManager.getQuestionsOrderedByPosition()
             allQuestions = questions
             
-            // Actualizar UI inmediatamente
+            // Actualizar UI inmediatamente con versión optimizada
             runOnUiThread {
-                updateQuestionsUI(questions)
+                updateQuestionsUIOptimized(questions)
                 setupEjecutivoButtons()
             }
             val elapsed = System.currentTimeMillis() - t0
@@ -1717,19 +1859,8 @@ class MainActivity : AppCompatActivity() {
     
     private fun correctInitialClientStates() {
         try {
-            // Solo corregir una vez, no cada vez que se inicia la app
-            val alreadyCorrected = prefs.getBoolean("initial_states_corrected", false)
-            if (alreadyCorrected) return
-            
-            val isInitialStatePendiente = prefs.getBoolean("client_initial_state_pendiente", true)
-            val expectedCompletedState = !isInitialStatePendiente
-            
-            // Determinar el estado correcto para la tabla de estados
-            val estadoCorrecto = if (isInitialStatePendiente) {
-                ClienteEstadoManager.ESTADO_PENDIENTE
-            } else {
-                ClienteEstadoManager.ESTADO_PAGADO
-            }
+            // Forzar que todos los clientes inicien como pendientes (no seleccionados)
+            android.util.Log.d("MainActivity", "correctInitialClientStates: Forzando TODOS los clientes a estado PENDIENTE")
             
             val allQuestions = questionManager.getAllQuestions()
             var correctedCount = 0
@@ -1738,33 +1869,149 @@ class MainActivity : AppCompatActivity() {
                 val clienteId = question.clienteId ?: 0L
                 val ejecutivoId = question.ejecutivoId
                 
-                // Actualizar tabla de estados
-                clienteEstadoManager.updateEstadoCliente(clienteId, estadoCorrecto, ejecutivoId)
+                // SIEMPRE forzar estado PENDIENTE en tabla de estados
+                clienteEstadoManager.updateEstadoCliente(clienteId, ClienteEstadoManager.ESTADO_PENDIENTE, ejecutivoId)
                 
-                // Actualizar pregunta para mantener compatibilidad
-                if (question.isCompleted != expectedCompletedState) {
-                    val correctedQuestion = question.copy(isCompleted = expectedCompletedState)
-                    questionManager.updateQuestion(correctedQuestion)
-                    correctedCount++
-                }
+                // SIEMPRE forzar pregunta como NO completada (pendiente)
+                val correctedQuestion = question.copy(isCompleted = false)
+                questionManager.updateQuestion(correctedQuestion)
+                correctedCount++
+                
+                android.util.Log.d("MainActivity", "correctInitialClientStates: Cliente ${question.title} forzado a PENDIENTE")
             }
             
-            if (correctedCount > 0) {
-                android.util.Log.d("MainActivity", "correctInitialClientStates: $correctedCount clientes corregidos al estado inicial correcto: $estadoCorrecto")
-                // Marcar como corregido para no volver a hacerlo
-                prefs.edit().putBoolean("initial_states_corrected", true).apply()
-                // Recargar la UI para mostrar los cambios
-                runOnUiThread {
-                    loadQuestions()
-                }
-            } else {
-                // Si no hubo correcciones, marcar como corregido de todas formas
-                prefs.edit().putBoolean("initial_states_corrected", true).apply()
-            }
+            android.util.Log.d("MainActivity", "correctInitialClientStates: $correctedCount clientes forzados a estado PENDIENTE")
             
         } catch (e: Exception) {
             android.util.Log.e("MainActivity", "Error corrigiendo estados iniciales de clientes", e)
         }
+    }
+    
+    // Métodos optimizados para mejorar rendimiento
+    private var lastDataRefreshTime = 0L
+    private val DATA_REFRESH_INTERVAL = 5000L // 5 segundos
+    
+    private fun shouldRefreshData(): Boolean {
+        val currentTime = System.currentTimeMillis()
+        val shouldRefresh = (currentTime - lastDataRefreshTime) > DATA_REFRESH_INTERVAL
+        if (shouldRefresh) {
+            lastDataRefreshTime = currentTime
+        }
+        return shouldRefresh
+    }
+    
+    private suspend fun correctInitialClientStatesOptimized() {
+        try {
+            val t0 = System.currentTimeMillis()
+            
+            // Solo corregir si hay preguntas completadas (optimización)
+            val allQuestions = questionManager.getAllQuestions()
+            val questionsToCorrect = allQuestions.filter { it.isCompleted }
+            
+            if (questionsToCorrect.isEmpty()) {
+                android.util.Log.d("Perf", "correctInitialClientStatesOptimized: No hay preguntas que corregir")
+                return
+            }
+            
+            var correctedCount = 0
+            for (question in questionsToCorrect) {
+                val clienteId = question.clienteId ?: 0L
+                val ejecutivoId = question.ejecutivoId
+                
+                // Forzar estado PENDIENTE solo si está completado
+                clienteEstadoManager.updateEstadoCliente(clienteId, ClienteEstadoManager.ESTADO_PENDIENTE, ejecutivoId)
+                
+                // Forzar pregunta como NO completada
+                val correctedQuestion = question.copy(isCompleted = false)
+                questionManager.updateQuestion(correctedQuestion)
+                correctedCount++
+            }
+            
+            val elapsed = System.currentTimeMillis() - t0
+            android.util.Log.d("Perf", "correctInitialClientStatesOptimized: ${elapsed}ms (corrected=${correctedCount})")
+            
+        } catch (e: Exception) {
+            android.util.Log.e("MainActivity", "Error en correctInitialClientStatesOptimized", e)
+        }
+    }
+    
+    private suspend fun loadQuestionsOptimized() {
+        try {
+            val t0 = System.currentTimeMillis()
+            
+            // Cargar preguntas sin procesar todos los clientes
+            val questions = questionManager.getQuestionsOrderedByPosition()
+            allQuestions = questions
+            
+            // Actualizar UI en hilo principal
+            runOnUiThread {
+                updateQuestionsUIOptimized(questions)
+                setupEjecutivoButtons()
+            }
+            
+            val elapsed = System.currentTimeMillis() - t0
+            android.util.Log.d("Perf", "loadQuestionsOptimized: ${elapsed}ms (questions=${questions.size})")
+            
+        } catch (e: Exception) {
+            android.util.Log.e("MainActivity", "Error en loadQuestionsOptimized", e)
+        }
+    }
+    
+    private fun updateQuestionsUIOptimized(questions: List<Question>) {
+        val t0 = System.currentTimeMillis()
+        
+        // Aplicar filtros (sin logs excesivos)
+        var filteredQuestions = questions
+        
+        // Aplicar filtro por ejecutivo si está activo
+        if (currentEjecutivoFilter != null) {
+            filteredQuestions = filteredQuestions.filter { question ->
+                question.ejecutivoId == currentEjecutivoFilter
+            }
+        }
+        
+        // Aplicar filtro de búsqueda si hay texto
+        if (searchQuery.isNotEmpty()) {
+            filteredQuestions = filteredQuestions.filter { question ->
+                val cliente = clienteManager.getClienteById(question.clienteId ?: -1)
+                if (cliente != null) {
+                    cliente.nombre.contains(searchQuery, ignoreCase = true) || 
+                    cliente.cedula.contains(searchQuery, ignoreCase = true)
+                } else {
+                    question.title.contains(searchQuery, ignoreCase = true) || 
+                    question.subtitle.contains(searchQuery, ignoreCase = true)
+                }
+            }
+        }
+        
+        // Aplicar ordenamiento
+        filteredQuestions = if (isAlphabeticalSort) {
+            filteredQuestions.sortedWith(compareBy<Question> { question ->
+                val ejecutivo = ejecutivoManager.getEjecutivoById(question.ejecutivoId)
+                ejecutivo?.name ?: "Sin ejecutivo"
+            }.thenBy { question ->
+                val cliente = clienteManager.getClienteById(question.clienteId ?: -1)
+                if (cliente != null) {
+                    cliente.nombre.trim().uppercase()
+                } else {
+                    question.title.trim().uppercase()
+                }
+            })
+        } else {
+            filteredQuestions.sortedBy { it.id }
+        }
+        
+        // Actualizar adapter
+        questionsAdapter.submitList(filteredQuestions)
+        
+        // Actualizar indicador de progreso
+        updateProgressIndicator(filteredQuestions)
+        
+        // Actualizar badge del menú
+        updateClientsMenuBadge()
+        
+        val elapsed = System.currentTimeMillis() - t0
+        android.util.Log.d("Perf", "updateQuestionsUIOptimized: ${elapsed}ms (in=${questions.size}, out=${filteredQuestions.size})")
     }
     
     // Método público para actualizar UI desde ConfigActivity

@@ -95,6 +95,37 @@
 
         </com.google.android.material.textfield.TextInputLayout>
 
+        <!-- Botón de Imagen (solo visible si está habilitado) -->
+        <LinearLayout
+            android:id="@+id/imageUploadLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="8dp"
+            android:visibility="gone">
+
+            <Button
+                android:id="@+id/btnSelectImage"
+                android:layout_width="0dp"
+                android:layout_height="36dp"
+                android:layout_weight="1"
+                android:text="📷 Seleccionar Imagen"
+                android:textSize="12sp"
+                android:backgroundTint="@color/blue_500"
+                android:textColor="@color/white"
+                android:layout_marginEnd="8dp" />
+
+            <ImageView
+                android:id="@+id/imagePreview"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/placeholder_background"
+                android:scaleType="centerCrop"
+                android:visibility="gone" />
+
+        </LinearLayout>
+
     </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>
